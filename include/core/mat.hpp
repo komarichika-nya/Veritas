@@ -20,4 +20,15 @@ HD static void decompose(const mat34<T>&v,vec3<T,V>&t,quat<T>&q,vec3<T,V>&s);
 HD static mat34<T>fast_inv(const mat34<T>&out);
 HD static T det(const mat34<T>&out);
 HD void to_3x3(T(&v)[3][3])const;};
+template<typename T,int N>struct mat{T m[N][N];
+HD mat();
+HD static mat<T,N>unit();
+HD static mat<T,N>zero();
+HD T det()const requires(N==3);
+HD mat<T,N>operator+(const mat<T,N>&v)const;
+HD mat<T,N>operator*(const vec<T,V,N>&v)const;
+HD mat<T,N>operator*(const mat<T,N>&v)const;
+HD mat<T,N>operator*(T v)const;
+HD mat<T,N>operator/(T v)const;
+HD mat<T,N>inv()const;};
 #include"../../src/core/mat.cpp"

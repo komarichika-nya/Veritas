@@ -78,3 +78,22 @@ T a20=out.mat[2][0],a21=out.mat[2][1],a22=out.mat[2][2];mat34<T>r;
 T c0=a11*a22-a12*a21,c1=a10*a22-a12*a20,c2=a10*a21-a11*a20,d=a00*c0-a01*c1+a02*c2;return d;}
 template<typename T>
 HD void mat34<T>::to_3x3(T(&v)[3][3])const{int x,y;for(x=0;x<3;x++)for(y=0;y<3;y++)v[x][y]=mat[x][y];}
+//square matrix
+template<typename T,int N>
+HD mat<T>::mat()=default;
+template<typename T,int N>
+HD mat<T,N>mat<T,N>::unit(){mat<T,N>v;int x,y;for(x=0;x<N;x++)for(y=0;y<N;y++)v.m[x][y]=T(1);return v;}
+template<typename T,int N>
+HD mat<T,N>mat<T,N>::zero(){mat<T,N>v;int x,y;for(x=0;x<N;x++)for(y=0;x<N;y++)v.m[x][y]=T(0);return v;}
+template<typename T,int N>
+HD T mat<T,N>::det()const requires(N==3){
+T a=m[0][0]*m[1][1]*m[2][2]+m[0][1]*m[1][2]*m[2][1]+m[0][2]*m[0][1]*m[2][1];
+T b=m[0][2]*m[1][1]*m[2][2]+m[0][1]*m[1][0]*m[2][2]+m[0][0]*m[1][2]*m[2][1];
+return a-b;}
+template<typename T,int N>
+HD T mat<T,N>::det()const requires(N==4){}
+template<typename T,int N>
+HD mat<T,N>mat<T,N>::operator+(const mat<T,N>&v)const{mat<T,N>a;int x,y;for(x=0;x<N;x++)for(y=0;y<N;y++)a.m[x][y]=m[x][y]+v.m[x][y];return a;}
+template<typename T,int N>
+HD T mat<T,N>::det()const{}
+
