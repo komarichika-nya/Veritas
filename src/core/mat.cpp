@@ -86,14 +86,29 @@ HD mat<T,N>mat<T,N>::unit(){mat<T,N>v;int x,y;for(x=0;x<N;x++)for(y=0;y<N;y++)v.
 template<typename T,int N>
 HD mat<T,N>mat<T,N>::zero(){mat<T,N>v;int x,y;for(x=0;x<N;x++)for(y=0;x<N;y++)v.m[x][y]=T(0);return v;}
 template<typename T,int N>
-HD T mat<T,N>::det()const requires(N==3){
+HD T mat<T,3>::det()const requires(N==3){
 T a=m[0][0]*m[1][1]*m[2][2]+m[0][1]*m[1][2]*m[2][1]+m[0][2]*m[0][1]*m[2][1];
 T b=m[0][2]*m[1][1]*m[2][2]+m[0][1]*m[1][0]*m[2][2]+m[0][0]*m[1][2]*m[2][1];
 return a-b;}
+//trust me,I will add,but not now.
 template<typename T,int N>
-HD T mat<T,N>::det()const requires(N==4){}
+HD T mat<T,N>::det()const requires(N==4){
+T a=m[0][0]*(m[1][1]*(m[2][2]*m[3][3]-m[2][3]*m[3][2])-m[1][2]*(m[2][1]*m[3][3]-m[2][3]*m[3][1])+m[1][3]*(m[2][1]*m[3][2]-m[2][2]*m[3][1]));
+T b=m[0][1]*(m[1][0]*(m[2][2]*m[3][3]-m[2][3]*m[3][2])-m[1][2]*(m[2][0]*m[3][3]-m[2][3]*m[3][0])+m[1][3]*(m[2][0]*m[3][2]-m[2][2]*m[3][0]));
+T c=m[0][2]*(m[1][0]*(m[2][1]*m[3][3]-m[2][3]*m[3][1])-m[1][1]*(m[2][0]*m[3][3]-m[2][3]*m[3][0])+m[1][3]*(m[2][0]*m[3][1]-m[2][1]*m[3][0]));
+T d=m[0][3]*(m[1][0]*(m[2][1]*m[3][2]-m[2][2]*m[3][1])-m[1][1]*(m[2][0]*m[3][2]-m[2][2]*m[3][0])+m[1][2]*(m[2][0]*m[3][1]-m[2][1]*m[3][0]));
+return a-b+c-d;}
 template<typename T,int N>
 HD mat<T,N>mat<T,N>::operator+(const mat<T,N>&v)const{mat<T,N>a;int x,y;for(x=0;x<N;x++)for(y=0;y<N;y++)a.m[x][y]=m[x][y]+v.m[x][y];return a;}
 template<typename T,int N>
-HD T mat<T,N>::det()const{}
-
+HD vec<T,V,M>mat<T,N>::operator*(const vec<T,V,N>&v)const{vec<T,V,N>a;int x,y;for(x=0;x<N;x++)for(y=0;y<N;y++)a[x]+=m[x][y]*v[x];return a;}
+template<typename T,int N>
+HD mat<T,N>mat<T,N>::operator*(const mat<T,N>&v)const{mat<T,N>a;int x,y,k;for(x=0;x<N;x++)for(y=0;y<N;y++)for(z=0;z<N;z++)a.m[x][y]=m[x][z]*v.m[z][y];return a;}
+template<typename T,int N>
+HD mat<T,N>mat<T,N>::operator*(T s)const{mat<T,N>a;int x,y;for(x=0;x<N;x++)for(y=0;y<N;y++)a.m[x][y]=m[x][y]*s;return a;}
+template<typename T,int N>
+HD mat<T,N>mat<T,N>::operator/(T s)const{mat<T,N>a;s=max(s,eps);int x,y;for(x=0;x<N;x++)for(y=0;y<N;y++)a.m[x][y]=m[x][y]/s;return a;}
+template<typename T,int N>
+HD mat<T,N>mat<T,3>::inv()requires(N==3){}
+template<typename T,int N>
+HD mat<T,N>mat<T,4>::inv()requires(N==4){}

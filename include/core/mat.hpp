@@ -25,10 +25,12 @@ HD mat();
 HD static mat<T,N>unit();
 HD static mat<T,N>zero();
 HD T det()const requires(N==3);
+HD T det()const requires(N==4);
 HD mat<T,N>operator+(const mat<T,N>&v)const;
 HD mat<T,N>operator*(const vec<T,V,N>&v)const;
 HD mat<T,N>operator*(const mat<T,N>&v)const;
 HD mat<T,N>operator*(T v)const;
 HD mat<T,N>operator/(T v)const;
-HD mat<T,N>inv()const;};
+HD static mat<T,N>inv(const mat<T,N>&v)requires(N==3);
+HD static mat<T,N>inv(const mat<T,N>&v)requires(N==4);};
 #include"../../src/core/mat.cpp"
