@@ -80,16 +80,15 @@ template<typename T>
 HD void mat34<T>::to_3x3(T(&v)[3][3])const{int x,y;for(x=0;x<3;x++)for(y=0;y<3;y++)v[x][y]=mat[x][y];}
 //square matrix
 template<typename T,int N>
-HD mat<T>::mat()=default;
+HD mat<T,N>::mat()=default;
 template<typename T,int N>
-HD mat<T,N>mat<T,N>::unit(){mat<T,N>v;int x,y;for(x=0;x<N;x++)for(y=0;y<N;y++)v.m[x][y]=T(1);return v;}
+HD mat<T,N>mat<T,N>::unit(){mat<T,N>v;int x,y;for(x=0;x<N;x++)for(y=0;y<N;y++)if(x==y)v.m[x][y]=T(1);else v.m[x][y]=T(0);return v;}
 template<typename T,int N>
-HD mat<T,N>mat<T,N>::zero(){mat<T,N>v;int x,y;for(x=0;x<N;x++)for(y=0;x<N;y++)v.m[x][y]=T(0);return v;}
+HD mat<T,N>mat<T,N>::zero(){mat<T,N>v;int x,y;for(x=0;x<N;x++)for(y=0;y<N;y++)v.m[x][y]=T(0);return v;}
 template<typename T,int N>
-HD T mat<T,3>::det()const requires(N==3){
-T a=m[0][0]*m[1][1]*m[2][2]+m[0][1]*m[1][2]*m[2][1]+m[0][2]*m[0][1]*m[2][1];
-T b=m[0][2]*m[1][1]*m[2][2]+m[0][1]*m[1][0]*m[2][2]+m[0][0]*m[1][2]*m[2][1];
-return a-b;}
+HD T mat<T,N>::det()const requires(N==3){
+T a=m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])-m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])+m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
+return a;}
 //trust me,I will add,but not now.
 template<typename T,int N>
 HD T mat<T,N>::det()const requires(N==4){
@@ -101,14 +100,46 @@ return a-b+c-d;}
 template<typename T,int N>
 HD mat<T,N>mat<T,N>::operator+(const mat<T,N>&v)const{mat<T,N>a;int x,y;for(x=0;x<N;x++)for(y=0;y<N;y++)a.m[x][y]=m[x][y]+v.m[x][y];return a;}
 template<typename T,int N>
-HD vec<T,V,M>mat<T,N>::operator*(const vec<T,V,N>&v)const{vec<T,V,N>a;int x,y;for(x=0;x<N;x++)for(y=0;y<N;y++)a[x]+=m[x][y]*v[x];return a;}
+HD vec<T,V,N>mat<T,N>::operator*(const vec<T,V,N>&v)const{vec<T,V,N>a;int x,y;for(x=0;x<N;x++){a[x]=T(0);for(y=0;y<N;y++)a[x]+=m[x][y]*v[y];}return a;}
 template<typename T,int N>
-HD mat<T,N>mat<T,N>::operator*(const mat<T,N>&v)const{mat<T,N>a;int x,y,k;for(x=0;x<N;x++)for(y=0;y<N;y++)for(z=0;z<N;z++)a.m[x][y]=m[x][z]*v.m[z][y];return a;}
+HD mat<T,N>mat<T,N>::operator*(const mat<T,N>&v)const{mat<T,N>a;int x,y,z;for(x=0;x<N;x++)for(y=0;y<N;y++)for(z=0;z<N;z++)a.m[x][y]+=m[x][z]*v.m[z][y];return a;}
 template<typename T,int N>
 HD mat<T,N>mat<T,N>::operator*(T s)const{mat<T,N>a;int x,y;for(x=0;x<N;x++)for(y=0;y<N;y++)a.m[x][y]=m[x][y]*s;return a;}
 template<typename T,int N>
-HD mat<T,N>mat<T,N>::operator/(T s)const{mat<T,N>a;s=max(s,eps);int x,y;for(x=0;x<N;x++)for(y=0;y<N;y++)a.m[x][y]=m[x][y]/s;return a;}
+HD mat<T,N>mat<T,N>::operator/(T s)const{mat<T,N>a;if(s==T(0))return mat<T,N>::zero();T s1=T(1)/s;int x,y;for(x=0;x<N;x++)for(y=0;y<N;y++)a.m[x][y]=m[x][y]*s1;return a;}
 template<typename T,int N>
-HD mat<T,N>mat<T,3>::inv()requires(N==3){}
+HD mat<T,N>mat<T,N>::inv(const mat<T,N>&v)requires(N==3){
+T a=v.m[0][0],b=v.m[0][1],c=v.m[0][2];
+T d=v.m[1][0],e=v.m[1][1],f=v.m[1][2];
+T g=v.m[2][0],h=v.m[2][1],i=v.m[2][2];
+T c00=e*i-f*h,c01=f*g-d*i,c02=d*h-e*g;
+T c10=c*h-b*i,c11=a*i-c*g,c12=b*g-a*h;
+T c20=b*f-c*e,c21=c*d-a*f,c22=a*e-b*d;
+T det=a*c00+b*c01+c*c02;if(det==T(0))return mat<T,N>::zero();
+T invd=T(1)/det;mat<T,N>ans;
+ans.m[0][0]=c00*invd;ans.m[1][0]=c01*invd;ans.m[2][0]=c02*invd;
+ans.m[0][1]=c10*invd;ans.m[1][1]=c11*invd;ans.m[2][1]=c12*invd;
+ans.m[0][2]=c20*invd;ans.m[1][2]=c21*invd;ans.m[2][2]=c22*invd;return ans;}
+//I'm scared with this...
 template<typename T,int N>
-HD mat<T,N>mat<T,4>::inv()requires(N==4){}
+HD mat<T,N>mat<T,N>::inv(const mat<T,N>&v)requires(N==4){
+auto d3=[&](T a00,T a01,T a02,T a10,T a11,T a12,T a20,T a21,T a22)->T{return a00*(a11*a22-a12*a21)-a01*(a10*a22-a12*a20)+a02*(a10*a21-a11*a20);};
+const T(&a)[4][4]=v.m;T det,tp[4][4];
+tp[0][0]=d3(a[1][1],a[1][2],a[1][3],a[2][1],a[2][2],a[2][3],a[3][1],a[3][2],a[3][3]);
+tp[1][0]=-d3(a[0][1],a[0][2],a[0][3],a[2][1],a[2][2],a[2][3],a[3][1],a[3][2],a[3][3]);
+tp[2][0]=d3(a[0][1],a[0][2],a[0][3],a[1][1],a[1][2],a[1][3],a[3][1],a[3][2],a[3][3]);
+tp[3][0]=-d3(a[0][1],a[0][2],a[0][3],a[1][1],a[1][2],a[1][3],a[2][1],a[2][2],a[2][3]);
+tp[0][1]=-d3(a[1][0],a[1][2],a[1][3],a[2][0],a[2][2],a[2][3],a[3][0],a[3][2],a[3][3]);
+tp[1][1]=d3(a[0][0],a[0][2],a[0][3],a[2][0],a[2][2],a[2][3],a[3][0],a[3][2],a[3][3]);
+tp[2][1]=-d3(a[0][0],a[0][2],a[0][3],a[1][0],a[1][2],a[1][3],a[3][0],a[3][2],a[3][3]);
+tp[3][1]=d3(a[0][0],a[0][2],a[0][3],a[1][0],a[1][2],a[1][3],a[2][0],a[2][2],a[2][3]);
+tp[0][2]=d3(a[1][0],a[1][1],a[1][3],a[2][0],a[2][1],a[2][3],a[3][0],a[3][1],a[3][3]);
+tp[1][2]=-d3(a[0][0],a[0][1],a[0][3],a[2][0],a[2][1],a[2][3],a[3][0],a[3][1],a[3][3]);
+tp[2][2]=d3(a[0][0],a[0][1],a[0][3],a[1][0],a[1][1],a[1][3],a[3][0],a[3][1],a[3][3]);
+tp[3][2]=-d3(a[0][0],a[0][1],a[0][3],a[1][0],a[1][1],a[1][3],a[2][0],a[2][1],a[2][3]);
+tp[0][3]=-d3(a[1][0],a[1][1],a[1][2],a[2][0],a[2][1],a[2][2],a[3][0],a[3][1],a[3][2]);
+tp[1][3]=d3(a[0][0],a[0][1],a[0][2],a[2][0],a[2][1],a[2][2],a[3][0],a[3][1],a[3][2]);
+tp[2][3]=-d3(a[0][0],a[0][1],a[0][2],a[1][0],a[1][1],a[1][2],a[3][0],a[3][1],a[3][2]);
+tp[3][3]=d3(a[0][0],a[0][1],a[0][2],a[1][0],a[1][1],a[1][2],a[2][0],a[2][1],a[2][2]);
+det=a[0][0]*tp[0][0]+a[0][1]*tp[0][1]+a[0][2]*tp[0][2]+a[0][3]*tp[0][3];if(det==T(0))return mat<T,N>::zero();
+T invd=T(1)/det;mat<T,N>ans;int x,y;for(x=0;x<N;x++)for(y=0;y<N;y++)ans.m[x][y]=tp[y][x]*invd;return ans;}

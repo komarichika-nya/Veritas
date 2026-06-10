@@ -27,7 +27,7 @@ HD static mat<T,N>zero();
 HD T det()const requires(N==3);
 HD T det()const requires(N==4);
 HD mat<T,N>operator+(const mat<T,N>&v)const;
-HD mat<T,N>operator*(const vec<T,V,N>&v)const;
+HD vec<T,V,N>operator*(const vec<T,V,N>&v)const;
 HD mat<T,N>operator*(const mat<T,N>&v)const;
 HD mat<T,N>operator*(T v)const;
 HD mat<T,N>operator/(T v)const;
