@@ -16,15 +16,39 @@ def vndf(i,a,u1,u2):
     t2=(1-s)*np.sqrt(max(1-t1*t1,0))+s*t2
     nh=t1*v1+t2*v2+np.sqrt(max(0,1-t1*t1-t2*t2))*vh
     return nor([nh[0]*a,nh[1]*a,max(0,nh[2])])
-i=[np.clip(np.random.rand(),-1,1),np.clip(np.random.rand(),-1,1),np.clip(np.random.rand(),-1,1)]
-for n in [nor([0,0,1]),nor([0,1,0]),nor([0.7,0.7,0]),nor([0.2,0.9,0.3])]:
-    tt=nor(cs(np.array([1,0,0]),n))if np.abs(n[2])>0.9999 else nor(cs(np.array([0,0,1]),n))
-    bb=cs(n,tt);il=nor(np.array([np.dot(i,tt),np.dot(i,bb),np.dot(i,n)]))
-    hs=[vndf(il,0.0223,np.random.rand(),np.random.rand())for _ in range(2000)]
-    wd=[h[0]*tt+h[1]*bb+h[2]*n for h in hs]
-    hm=nor(np.mean(wd,0))
-    print(f'i={i} hm={hm} n={n}')
-    print()
-    ang=np.degrees(np.arccos(np.clip(np.dot(hm,n),-1,1)))
-    print(f'n={np.round(n,2)} mean={np.round(hm,2)} ang={ang:5.1f}')
+def sp(u1,u2):
+    phi=2*np.pi*u2;r=np.sqrt(u1)
+    x=r*np.cos(2*np.pi*phi)
+    y=r*np.sin(2*np.pi*phi)
+    z=np.sqrt(1-u1)
+    return np.array([x,y,z])
+ctr=np.array([0.0,3.0,0.0])
+R=3.0
+eps=1e-6
+def hit1(wo,wi):
+    oc=wo-ctr
+    a,b,c=wi[0]*wi[0]+wi[1]*wi[1]+wi[2]*wi[2],2.0*(wi[0]*oc[0]+wi[1]*oc[1]+wi[2]*oc[2]),oc[0]*oc[0]+oc[1]*oc[1]+oc[2]*oc[2]-R*R
+    T dt=b*b-4.0*a*c
+    if dt<0:return -1e8
+    T s=np.sqrt(dt)
+    T s1=(-b+s)/(2*a)
+    T s2=(-b-s)/(2*a)
+    mx=max(s1,s2);mn=min(s1,s2)
+    if mx>eps:return mx
+    if mn>eps:return mn
+    return -1e8
+
+def E(wo,spp=1000):
+    wo=nor(wo)
+    acc=np.zero(3)
+    for _ in range(spp):
+        u1,u2=np.random().rand(),np.random().rand()
+        wi=sp(u1,u2)
+        pdf=wi[2]/np.pi if wi[2]>0 else 0.0
+        if pdf<=0:continue
+        f+=bsdf(wo,wi)
+        acc+=f*wi[2]/pdf
+    return acc/spp
+print(f'E:{E(np.array([0.0,0.0,1.0]))} should approx 1')
+
 

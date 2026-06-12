@@ -11,6 +11,7 @@
 #include"test/doctest.h"
 #include<random>
 #include<cstdio>
+#include"util/transform.hpp"
 #include"sample/Independent.hpp"
 std::mt19937 rg(std::random_device{}());
 std::uniform_real_distribution<float>dis(0.1f,3.14158265f),dis1(0.0f,1.0f);
@@ -172,15 +173,21 @@ smx+=v1;smy+=v2;smxy+=v1*v2;}double cov=(smxy/n)-(smx/n)*(smy/n);//printf("%.6f\
 //for(x=1;x<=10;x++)printf("%.6f %.6f\n",in1.get1d(),in2.get1d());
 Sampler<Independent<float>,float>c1=in1.clone(100),c2=in1.clone(200);
 //printf("c1:%p c2:%p in1:%p\n",c1,c2,in1);
-//for(x=1;x<=10;x++)printf("%.6f %.6f\n",c1.get1d(),c2.get1d());}
-TEST_CASE("filter"){
+//for(x=1;x<=10;x++)printf("%.6f %.6f\n",c1.get1d(),c2.get1d());
+}
+//TEST_CASE("filter"){
 //Box<float>box(vec2<float,P>(1,2));printf("%f\n",box.integral());
 //printf("%f\n",box.evaluate(vec2<float,P>(0,0)));
-}
-TEST_CASE("det 3x3"){
-int x,y;mat<float,3>v;FILE*p=freopen("../a.in","r",stdin);assert(p!=nullptr);for(x=0;x<3;x++){for(y=0;y<3;y++)std::cin>>v.m[x][y];}
-printf("%f\n",v.det());fclose(p);}
-
+//}
+//TEST_CASE("det 3x3"){
+//int x,y;mat<float,3>v;FILE*p=freopen("../a.in","r",stdin);assert(p!=nullptr);for(x=0;x<3;x++){for(y=0;y<3;y++)std::cin>>v.m[x][y];}
+//printf("%f\n",v.det());fclose(p);}
+//TEST_CASE("det 4x4"){
+//int x,y;mat<float,4>v;FILE*p=freopen("../a.in","r",stdin);assert(p!=nullptr);for(x=0;x<4;x++){for(y=0;y<4;y++)std::cin>>v.m[x][y];}
+//printf("%f\n",v.det());fclose(p);}
+//TEST_CASE("inv 4x4"){
+//int x,y;mat<float,4>v;for(x=0;x<4;x++){for(y=0;y<4;y++)v.m[x][y]=dis(rg);}
+//mat<float,4>ans=mat<float,4>::inv(v)*v;for(x=0;x<4;x++){for(y=0;y<4;y++)printf("%f ",ans.m[x][y]);printf("\n");}}
 
 
 

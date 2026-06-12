@@ -105,7 +105,7 @@ T etat=T(1.5);
 template<typename T>
 T X(T a){return a>T(0)?T(1):T(0);}
 template<typename T>
-constexpr T aph=T(0.023);
+constexpr T aph=T(0.2);
 template<typename T>
 vec3<T,V>sph(const vec3<T,V>&n,Independent<T>&s){
 T u=s.get1d(),v=s.get1d();T theta=atan(sqrt(-aph<T>*aph<T>*log(max(1-u,T(1e-9)))));
@@ -136,24 +136,36 @@ vec2<T,P>ro(const vec3<T,V>&d){return{T(0.5)+T(atan2(d.z,d.x))/(T(2)*T(3.1415926
 template<typename T>
 Spectrum<T>Fs(const vec3<T,V>&ii,const vec3<T,V>&nn,const Spectrum<T>&er){
 assert(!isnan(er[0])&&!isnan(er[1])&&!isnan(er[2]));Spectrum<T>out(0,0,0);int x;for(x=0;x<3;x++)out[x]=F(ii,nn,er[x]);return out;}
-int cnt=0,to=0;
+int cnt=0,to=0;vec3<float,P>ctr(0,3,0);float R=3.0f;
+double albedo(const vec3<float,V>&i,float a,int N){
+    double acc;int x;
+    for(x=0;x<N;x++){
+        vec3<float,V>h=nor(vndf(i,a,in.get1d(),in.get1d()));
+        float f=F(i,h,1.0f/1.5f);
+        vec3<float,V>o;float w;float rd=in.get1d();
+        if(rd<f){o=nor(-reflect(i,h));w=G(o,h,vec3<float,V>(0,0,1),a);}
+        else{o=nor(refract(-i,h,1.0f/1.5f));w=G(o,-h,vec3<float,V>(0,0,-1),a);}
+        if(dot(o,o)>0.0f)acc+=w;
+    }
+    return acc/N;
+}
 template<typename T>
 Spectrum<T>render1(const ray<T>*r,int dep){
     //to++;
     if(dep>10)return Spectrum<T>(0,0,0);
-    T h1=hit1(r,3.0f,vec3<T,P>(-1,4,1)),h2=hit2(r),t=T(1e30),h3=hit3(r,sun<T>,e1<T>,e2<T>);int tp=-1;
+    T h1=hit1(r,R,ctr),h2=hit2(r),t=T(1e30),h3=hit3(r,sun<T>,e1<T>,e2<T>);int tp=-1;
     if(h1>eps&&h1<t){t=h1;tp=0;}
     if(h2>eps&&h2<t){t=h2;tp=1;}if(h3>eps&&h3<t){t=h3;tp=2;}
     if(tp==-1){
         T u=T(0.5)*(r->d.y+T(1));
-        return Spectrum<T>::lerp(Spectrum<T>(0.05,0.17,0.1),Spectrum<T>(0.03,0.04,0.06),u);
+        return Spectrum<T>(1,1,1);//Spectrum<T>::lerp(Spectrum<T>(0.05,0.17,0.1),Spectrum<T>(0.03,0.04,0.06),u);
     }
     vec3<T,P>p=r->o+r->d*t;
     vec3<T,V>n,d;
     Spectrum<T>rho(0,0,0),li(0,0,0);
     Independent<T>local=in.clone(dep);
     if(tp==0){//object
-        d=nor(p-vec3<T,P>(-1,4,1));//rho=Spectrum<T>(0.0001,0.0001,0.0001);
+        d=nor(p-ctr);//rho=Spectrum<T>(0.0001,0.0001,0.0001);
         n=d;bool etr=dot(r->d,n)<T(0);
         n=etr?n:-n;
         vec2<T,P>uv=ro(d);
@@ -171,6 +183,7 @@ Spectrum<T>render1(const ray<T>*r,int dep){
         assert(!isnan(ft));ray<T>ra;ra.o=p-vec3<T,V>(n.x,n.y,n.z)*eps;ra.d=o;return render1(&ra,dep+1)*ft;}
     }
         if(tp==1){//ground
+            return Spectrum<T>(1,1,1);
             n=vec3<T,V>(0,1,0);int ck=(int(floor(p.x))+int(floor(p.z)));rho=ck&1?Spectrum<T>(0.2,0.2,0.2):Spectrum<T>(0.8,0.8,0.8);
             T rr=local.get1d();
             vec3<T,V>i=nor(-r->d);vec3<T,V>tt=nor(cs(vec3<T,V>(0,0,1),n));
@@ -180,7 +193,7 @@ Spectrum<T>render1(const ray<T>*r,int dep){
         }
         if(tp==2){return sc<T>;}
         auto add=[&](const vec3<T,P>&sunn,const vec3<T,V>&en1,const vec3<T,V>&en2,const Spectrum<T>&scn)->Spectrum<T>{
-        int spp=1000;Spectrum<T>tot(0,0,0);for(int x=0;x<spp;x++){
+        int spp=100;Spectrum<T>tot(0,0,0);for(int x=0;x<spp;x++){
         T Gi=T(0);T u=local.get1d(),v=local.get1d();
         vec3<T,V>rd=u*en1+v*en2;vec3<T,P>pt=sunn+vec3<T,P>(rd.x,rd.y,rd.z);
         vec3<T,V>dir=pt-p;vec3<T,V>n1=nor(cs(en1,en2));T s=len(cs(en1,en2));T dis=max(len(dir),eps);dir=nor(dir);
@@ -205,7 +218,7 @@ Spectrum<T>render1(const ray<T>*r,int dep){
             return tot/T(spp);
         };
         Spectrum<T>le=add(sun<T>,e1<T>,e2<T>,sc<T>);
-        return li+le;
+        return li;//+le;
 }
 template<typename T>
 Spectrum<T>F0(const vec3<T,V>&i,const vec3<T,V>&n,const Spectrum<T>&eta,const Spectrum<T>&k){
@@ -216,7 +229,7 @@ Spectrum<T>render2(const ray<T>*r,int dep){
     if(dep>10)return Spectrum<T>(0,0,0);
     T h1=hit1(r,3.0f,vec3<T,P>(0,3,0)),h2=hit2(r),t=T(1e30);int tp=-1;
     if(h1>eps&&h1<t){t=h1;tp=0;}if(h2>eps&&h2<t){t=h2;tp=1;}Spectrum<T>li;
-    if(tp==-1){T u=T(0.5)*(r->d.y+T(1.0));return Spectrum<T>::lerp(Spectrum<T>(0.05,0.07,0.1),Spectrum<T>(0.03,0.04,0.06),u);}
+    if(tp==-1){T u=T(0.5)*(r->d.y+T(1.0));return Spectrum<T>(1,1,1);}//return Spectrum<T>::lerp(Spectrum<T>(0.05,0.07,0.1),Spectrum<T>(0.03,0.04,0.06),u);}
     vec3<T,P>p=r->o+r->d*t;vec3<T,V>n;Spectrum<T>rho(0,0,0);Independent<T>local=in.clone(dep);
     if(tp==0){//object
         n=nor(p-vec3<T,P>(0,3,0));rho=Spectrum<T>(0.5,0.5,0.5);
@@ -253,7 +266,7 @@ Spectrum<T>render2(const ray<T>*r,int dep){
     };
     ray<T>r1;r1.o=p+n*eps;r1.d=sp(n,local);assert(dot(r1.d,n)>=0);
     Spectrum<T>le=add(sun<T>,e1<T>,e2<T>,sc<T>);
-    return li+le;
+    return li;//+le;
 }
 int main(){
 //printf("f:(%f %f %f) r:(%f %f %f) u:(%f %f %f)\n",cam.pos.f.x,cam.pos.f.y,cam.pos.f.z,cam.pos.r.x,cam.pos.r.y,cam.pos.r.z,cam.pos.u.x,cam.pos.u.y,cam.pos.u.z);
@@ -268,7 +281,7 @@ me->pos.push_back(vec3<float,P>{3,3,0});
 me->idx.push_back(vec3<int,P>{2,1,0});
 me->face_idx.push_back(0);
 vec3<float,V>n=me->get_normal(0);
-int spp=1;
+int spp=200;
 #pragma omp parallel for
 for(int y=0;y<h;y++){
 Independent<float>local=in.clone(y);
@@ -285,24 +298,16 @@ auto tile=cam.film->getTile(bd);
         cs.t=local.get1d();
         ray<float>r;
         cam.generateRay(&r,cs);
-        Spectrum<float>L;
-        //auto v=me->intersect(&r,0);
-        if(me->intersect(&r,0)!=-1.0f){surface<float>sur=me->get(&r,0);
-        //printf("%f %f %f %f\n",me->area(0),sur.pos.x,sur.pos.y,sur.pos.z);
-        L=Spectrum<float>(1,0,0);
-        }else{L=Spectrum<float>(0,0,0);}
-        //printf("%f %f %f %f %f %f\n",r.o.x,r.o.y,r.o.z,r.d.z,r.d.y,r.d.z);
-        //Spectrum<float>L=render1(&r,2);
-        //assert(!isnan(L.c[0])&&!isnan(L.c[1])&&!isnan(L.c[2]));
-        //Spectrum<float>Li=rendersp(&r,1);
-        sum=sum+L;//sumsp=sumsp+Li;
-        }sum=sum/float(spp);//sumsp=sumsp/float(spp);
-        //printf("%f %f %f\n",sum.c[0],sum.c[1],sum.c[2]);
+        Spectrum<float>L=render1(&r,2);
+        sum=sum+L;
+        }sum=sum/float(spp);
         tile.addSample(f,vec2<float,P>(x,y),sum,1.0f);
         //tile.addSplat(vec2<T,P>(x,y),sumsp,1.0f);
     }
     film.mergeTile(tile);
 }
+double acc=albedo(vec3<float,V>(0,3,0),0.0238f,1000);
+printf("%f\n",acc);
 film.writeImage("b.ppm");
 delete me;
 //printf("%f\n",(float)cnt/to);

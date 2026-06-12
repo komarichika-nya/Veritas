@@ -5,6 +5,7 @@ struct P{};struct V{};
 template<typename T,int N>struct vec_type;
 template<typename T>struct vec_type<T,2>{T x,y;};
 template<typename T>struct vec_type<T,3>{T x,y,z;};
+template<typename T>struct vec_type<T,4>{T x,y,z,w;};
 template<typename T,typename tag,int N>
 struct vec:vec_type<T,N>{
     HD vec();
@@ -53,4 +54,6 @@ template<typename T,typename tag>
 using vec2=vec<T,tag,2>;
 template<typename T,typename tag>
 using vec3=vec<T,tag,3>;
+template<typename T,typename tag>
+using vec4=vec<T,tag,4>;
 #include"../../src/core/vec.cpp"
