@@ -1,4 +1,5 @@
 #pragma once
+#include"conf/conf.hpp"
 static_assert(sizeof(int)==4,"lim<int> assumes 32-bit");
 static_assert(sizeof(short)==2,"lim<short> assumes 8-bit");
 static_assert(sizeof(long long)==8,"lim<long long> assumes 64-bit");
@@ -18,13 +19,13 @@ static_assert(sizeof(double)==8,"lim<double> assumes IEEE 754");
 template<typename T>struct lim;
 #define DEF_INT_LIM(T)\
 template<>struct lim<T>{\
-    static constexpr T max(){return IMAX(T);}\
-    static constexpr T min(){return IMIN(T);}\
+    HD static constexpr T max(){return IMAX(T);}\
+    HD static constexpr T min(){return IMIN(T);}\
 };
 #define DEF_UINT_LIM(T)\
 template<>struct lim<T>{\
-    static constexpr T max(){return IMAX(T);}\
-    static constexpr T min(){return 0;}\
+    HD static constexpr T max(){return IMAX(T);}\
+    HD static constexpr T min(){return 0;}\
 };
 DEF_INT_LIM(int);
 DEF_INT_LIM(signed char);
@@ -38,13 +39,13 @@ DEF_UINT_LIM(unsigned long);
 DEF_UINT_LIM(unsigned long long);
 DEF_UINT_LIM(unsigned short);
 template<>struct lim<float>{
-    static constexpr float max(){return FLT_MAX_VAL;}
-    static constexpr float min(){return FLT_MIN_VAL;}
-    static constexpr float eps(){return FLT_EPS_VAL;}
+    HD static constexpr float max(){return FLT_MAX_VAL;}
+    HD static constexpr float min(){return FLT_MIN_VAL;}
+    HD static constexpr float eps(){return FLT_EPS_VAL;}
 };
 template<>struct lim<double>{
-    static constexpr double max(){return DBL_MAX_VAL;}
-    static constexpr double min(){return DBL_MIN_VAL;}
-    static constexpr double eps(){return DBL_EPS_VAL;}
+    HD static constexpr double max(){return DBL_MAX_VAL;}
+    HD static constexpr double min(){return DBL_MIN_VAL;}
+    HD static constexpr double eps(){return DBL_EPS_VAL;}
 };
 

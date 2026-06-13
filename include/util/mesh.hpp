@@ -6,25 +6,20 @@
 #include"core/bound.hpp"
 #include"core/ray.hpp"
 #include"surface.hpp"
-using std::vector;
+#include"conf/optional.hpp"
+#include<vector>
 template<typename T>class Mesh{
+    int mesh_idx=-1,tri_idx=-1;
+    static vector<const Shape<Triangle,T>*>*all;
+    static constexpr T mn_sample=T(3e-4);
+    static constexpr T mx_sample=T(6.22);
+    const Shape<Triangle,T>*getMesh()const;
 public:
-    vector<vec3<T,P>>pos;
-    vector<vec3<T,V>>face_normal;
-    vector<vec3<T,V>>shading_normal;
-    vector<vec2<T,P>>uvs;
-    vector<int>face_idx;
-    vector<vec3<int,P>>idx;
-    int count;
-Mesh();
-Mesh(const vector<vec3<T,P>>&pos,const vector<vec3<T,V>>&face_normal,const vector<vec3<T,V>>&shading_normal,const vector<vec2<T,P>>&uvs,const vector<vec3<int,P>>&idx,int cnt);
-Mesh(const vector<vec3<T,P>>&pos,const vector<vec3<T,V>>&face_normal,const vector<vec3<int,P>>&idx);
-Mesh(const vector<vec3<T,P>>&pos,const vector<vec3<int,P>>&idx,int cnt);
-Mesh(const vector<vec3<T,P>>&pos,const vector<vec3<int,P>>&idx);
-bound3<T>bounds()const;
-T intersect(const ray<T>*r,int p)const;
-T area(int p)const;
-vec3<T,V>get_normal(int p)const;
-surface<T>get(const ray<T>*r,int p)const;};
-#include"../../src/util/mesh.cpp"
+    HD Mesh()=default;
+    HD Mesh(int mesh_idx,int tri_idx):mesh_idx(mesh_idx),tri_idx(tri_idx){}
+    vector<Shape<Triangle,T>>build(const Shape<Triangle,T>*all);
+    HD bound3 bounds()const;
+};
+template<typename T>hit{t,b0,b1,b2};
+template<typename T>optional<hit<T>>intersect(const ray<T>*r,T mx,const vec3<T,P>&p0,const vec3<T,P>&p1,const vec3<T,P>&p2);
 

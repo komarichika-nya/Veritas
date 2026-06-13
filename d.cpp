@@ -158,7 +158,7 @@ Spectrum<T>render1(const ray<T>*r,int dep){
     if(h2>eps&&h2<t){t=h2;tp=1;}if(h3>eps&&h3<t){t=h3;tp=2;}
     if(tp==-1){
         T u=T(0.5)*(r->d.y+T(1));
-        return Spectrum<T>(1,1,1);//Spectrum<T>::lerp(Spectrum<T>(0.05,0.17,0.1),Spectrum<T>(0.03,0.04,0.06),u);
+        return Spectrum<T>::lerp(Spectrum<T>(0.05,0.17,0.1),Spectrum<T>(0.03,0.04,0.06),u);
     }
     vec3<T,P>p=r->o+r->d*t;
     vec3<T,V>n,d;
@@ -183,7 +183,7 @@ Spectrum<T>render1(const ray<T>*r,int dep){
         assert(!isnan(ft));ray<T>ra;ra.o=p-vec3<T,V>(n.x,n.y,n.z)*eps;ra.d=o;return render1(&ra,dep+1)*ft;}
     }
         if(tp==1){//ground
-            return Spectrum<T>(1,1,1);
+            //return Spectrum<T>(1,1,1);
             n=vec3<T,V>(0,1,0);int ck=(int(floor(p.x))+int(floor(p.z)));rho=ck&1?Spectrum<T>(0.2,0.2,0.2):Spectrum<T>(0.8,0.8,0.8);
             T rr=local.get1d();
             vec3<T,V>i=nor(-r->d);vec3<T,V>tt=nor(cs(vec3<T,V>(0,0,1),n));
@@ -306,7 +306,7 @@ auto tile=cam.film->getTile(bd);
     }
     film.mergeTile(tile);
 }
-double acc=albedo(vec3<float,V>(0,3,0),0.0238f,1000);
+//double acc=albedo(vec3<float,V>(0,3,0),0.0238f,1000);
 printf("%f\n",acc);
 film.writeImage("b.ppm");
 delete me;

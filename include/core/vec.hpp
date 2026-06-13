@@ -32,6 +32,8 @@ template<typename T,int N>
 HD vec<T,V,N>operator-(const vec<T,P,N>&v1,const vec<T,P,N>&v2);
 template<typename T,typename tag,int N,typename U>
 HD vec<T,tag,N>operator*(U s,const vec<T,tag,N>&v);
+
+//useful function layout vec
 template<typename T,typename tag,int N>
 HD T dot(const vec<T,tag,N>&v1,const vec<T,tag,N>&v2);
 template<typename T,typename tag>

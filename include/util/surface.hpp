@@ -2,6 +2,14 @@
 #include"conf/conf.hpp"
 #include"conf/optional.hpp"
 #include"core/vec.hpp"
+//basic imformation
+template<typename T>
+struct shapeIntersection{
+    vec3<T,V>pos{0,0,0};
+    vec3<T,V>normal{0,0,0};
+};
+
+//I will fix, but not now.
 template<typename T>
 struct surface{
 vec3<T,P>pos{0,0,0};vec3<T,V>face_normal{0,0,0};vec3<T,V>shading_normal{0,0,0};T u=lim<T>::max(),v=lim<T>::max();vec3<T,V>dpu{0,0,0},dpv{0,0,0};vec3<T,V>wo{0,0,0};
