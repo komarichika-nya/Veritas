@@ -1,5 +1,6 @@
 #pragma once
 #include"conf/conf.hpp"
+namespace fsystd{
 static_assert(sizeof(int)==4,"lim<int> assumes 32-bit");
 static_assert(sizeof(short)==2,"lim<short> assumes 8-bit");
 static_assert(sizeof(long long)==8,"lim<long long> assumes 64-bit");
@@ -48,4 +49,4 @@ template<>struct lim<double>{
     HD static constexpr double min(){return DBL_MIN_VAL;}
     HD static constexpr double eps(){return DBL_EPS_VAL;}
 };
-
+}//namespace fsystd

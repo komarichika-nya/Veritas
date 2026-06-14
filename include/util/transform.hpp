@@ -15,6 +15,6 @@ HD vec3<T,V>inv_direct(const vec3<T,V>&v)const;
 HD vec3<T,V>normal(const vec3<T,V>&n)const;
 HD ray<T>apply(const ray<T>&r)const;
 HD Transform operator*(const Transform<T>&t)const{return{m*t.m,minv*t.minv};}
-HD static };
+};
 #include"../../src/util/transform.cpp"
 

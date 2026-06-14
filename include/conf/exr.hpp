@@ -1,7 +1,8 @@
-namespace EXR{
-    void sv(const char*f,int w,int h,const float*rgb){
-        FILE*ptr=fopen(f,"wb");assert(ptr!=nullptr);
-        u8 num[]={0x76,0x2f,0x31,0x01};fwrite(num,1,4,ptr);
+namespace fsystd{
+    namespace EXR{
+        void sv(const char*f,int w,int h,const float*rgb){
+            FILE*ptr=fopen(f,"wb");assert(ptr!=nullptr);
+            u8 num[]={0x76,0x2f,0x31,0x01};fwrite(num,1,4,ptr);
         u8 ver[]={0x02,0x00,0x00,0x00};fwrite(ver,1,4,ptr);
         auto write=[&](const char*a,const char*b,int s,const void*d){
             fprintf(ptr,"%s%c",a,0);fprintf(ptr,"%s%c",b,0);fwrite(&s,1,4,ptr);
@@ -27,6 +28,7 @@ namespace EXR{
             for(x=0;x<w;x++)r[x]=rgb[(y*w+x)*3],g[x]=rgb[(y*w+x)*3+1],b[x]=rgb[(y*w+x)*3+2];
             fwrite(b.data(),4,w,ptr);fwrite(g.data(),4,w,ptr);fwrite(r.data(),4,w,ptr);
         }
-        fseek(ptr,pos,SEEK_SET);fwrite(tmp.data(),8,h,ptr);fclose(ptr);
+            fseek(ptr,pos,SEEK_SET);fwrite(tmp.data(),8,h,ptr);fclose(ptr);
+        }
     }
-}
+}//namespace fsystd

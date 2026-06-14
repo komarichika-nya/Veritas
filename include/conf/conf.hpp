@@ -16,3 +16,4 @@ HD size_t hash(const void*d,size_t bt){
 const auto*p=static_cast<const unsigned char*>(d);
 size_t h=1469598103934665603ull;
 size_t x;for(x=0;x<bt;x++){h^=size_t(p[x]);h*=1099511628211ull;}return h;}
+
