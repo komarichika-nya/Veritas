@@ -1,4 +1,4 @@
-namespace fsystd{
+namespace fsytd{
     namespace EXR{
         void sv(const char*f,int w,int h,const float*rgb){
             FILE*ptr=fopen(f,"wb");assert(ptr!=nullptr);

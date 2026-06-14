@@ -1,6 +1,7 @@
 #pragma once
 #include"core/vec.hpp"
 #include"conf/conf.hpp"
+#include"conf/lim.hpp"
 template<typename T>struct ray{
     vec3<T,P>o;vec3<T,V>d;T t,tmn;mutable T tmx;T time;
     HD ray();

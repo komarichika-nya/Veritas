@@ -1,12 +1,12 @@
 namespace fsytd{
     template<typename T>class allocator{
-    public:
         using value_type=T;
-        allocator()=default;
-        allocator&operator=(const allocator&)=default;
+        char*start=nullptr;char*end=nullptr;size_t sz=0;
+        constexpr allocator()=default;
+        constexpr allocator&operator=(const allocator&)=default;
+        constexpr ~allocator()=default;
         union node{node*nxt;char buf[1];};
         enum{MIN_SIZE=8,MAX_SIZE=128,NEXT_FREE=16,MEMBER_SIZE=20};
-        char*start=nullptr;char*end=nullptr;size_t sz=0;
         node*list[NEXT_FREE]={};
         //n byte
         size_t up(size_t n){return(n+MIN_SIZE-1)&~(MIN_SIZE-1);}
@@ -28,20 +28,23 @@ namespace fsytd{
             if(l>=n){obj=l/n;tot=n*obj;char*tmp=start;start+=tot;return tmp;}
             size_t apply=2*tot+up(sz>>4);
             if(l>0){size_t id=idx(l);reinterpret_cast<node*>(start)->nxt=list[id];list[id]=reinterpret_cast<node*>(start);}
-            start=static_cast<char*>(::operator(new(apply)));
+            start=static_cast<char*>(::operator new(apply));
             sz+=apply;return chunk_alloc(n,obj);
         }
-        //n byte
-        T*allocate(size_t n){
+    public:
+        //n number
+        T*allocate(size_t np){
+            size_t n=np*sizeof(T);
             if(n>MAX_SIZE)return static_cast<T*>(::operator new(n*sizeof(T)));
             size_t id=idx(up(n));node*tmp=list[id];if(tmp==nullptr)return fill(up(n));
             list[id]=tmp->nxt;return tmp;
         }
-        //n byte
-        void deallocate(T*p,size_t n){
+        //n number
+        void deallocate(T*p,size_t np){
+            size_t n=np*sizeof(T);
             if(n>MAX_SIZE){::operator delete(p);return;}
-            size_t id=idx(up(n));node*n=static_cast<node*>(p);
-            n->nxt=list[id];list[id]=n;
+            size_t id=idx(up(n));node*nd=static_cast<node*>(p);
+            nd->nxt=list[id];list[id]=nd;
         }
     };
 }//namespace fsytd

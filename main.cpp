@@ -13,6 +13,7 @@
 #include<cstdio>
 #include"util/transform.hpp"
 #include"sample/Independent.hpp"
+using namespace fsytd;
 std::mt19937 rg(std::random_device{}());
 std::uniform_real_distribution<float>dis(0.1f,3.14158265f),dis1(0.0f,1.0f);
 bool f(auto a,auto b){int x,y;bool ck=1;for(x=0;x<3;x++)for(y=0;y<4;y++)if(std::abs(a.mat[x][y]-b.mat[x][y])>1e-5)return 0;return 1;}

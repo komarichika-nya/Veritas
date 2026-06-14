@@ -9,10 +9,10 @@ template<typename T>
 template<typename F>
 void Tile<T>::addSample(const F&f,const vec2<T,P>&p,const Spectrum<T>&L,T w){
 vec2<T,P>r=f.radius();
-int x0=max((int)ceil(p.x-r.x+T(0.5)),sampleBound.mn.x);
-int x1=min((int)floor(p.x+r.x+T(0.5)),sampleBound.mx.x);
-int y0=max((int)ceil(p.y-r.y+T(0.5)),sampleBound.mn.y);
-int y1=min((int)floor(p.y+r.y+T(0.5)),sampleBound.mx.y);
+int x0=fsytd::max((int)ceil(p.x-r.x+T(0.5)),sampleBound.mn.x);
+int x1=fsytd::min((int)floor(p.x+r.x+T(0.5)),sampleBound.mx.x);
+int y0=fsytd::max((int)ceil(p.y-r.y+T(0.5)),sampleBound.mn.y);
+int y1=fsytd::min((int)floor(p.y+r.y+T(0.5)),sampleBound.mx.y);
 int x,y;int rw=sampleBound.mx.x-sampleBound.mn.x+1;
 for(y=y0;y<=y1;y++){
     for(x=x0;x<=x1;x++){

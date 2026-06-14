@@ -2,11 +2,6 @@
 #include"core/vec.hpp"
 #include"core/mat.hpp"
 #include"conf/conf.hpp"
-namespace{
-template<typename T>
-T max(T a,T b){return a>b?a:b;}
-template<typename T>
-T min(T a,T b){return a>b?b:a;}}
 template<typename T>struct mat34;
 template<typename T>struct quat{T w,x,y,z;
     HD quat();HD quat(T w,T x,T y,T z); 

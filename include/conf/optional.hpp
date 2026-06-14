@@ -2,7 +2,7 @@
 #include<new>
 #include<cassert>
 #include"conf/conf.hpp"
-namespace fsystd{
+namespace fsytd{
     template<bool B>struct bool_type{static constexpr bool value=B;};
     using true_type=bool_type<true>;
     using false_type=bool_type<false>;

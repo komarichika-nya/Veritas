@@ -1,5 +1,6 @@
 #include"conf/conf.hpp"
 #include"core/quat.hpp"
+#include"conf/lim.hpp"
 #include<cmath>
 template<typename T>HD quat<T>::quat():w(1),x(0),y(0),z(0){};
 template<typename T>HD quat<T>::quat(T w,T x,T y,T z):w(w),x(x),y(y),z(z){}; 
@@ -7,8 +8,8 @@ template<typename T>HD quat<T>quat<T>::unit(){return{T(1),T(0),T(0),T(0)};}
 template<typename T>HD quat<T>quat<T>::norm(const quat<T>&a){T v=sqrt(a.w*a.w+a.x*a.x+a.y*a.y+a.z*a.z);return{a.w/v,a.x/v,a.y/v,a.z/v};}
 template<typename T>HD quat<T>quat<T>::axis(const vec3<T,V>&a,const T ang){auto na=nor(a);return norm({cos(ang/T(2)),sin(ang/T(2))*na.x,sin(ang/T(2))*na.y,sin(ang/T(2))*na.z});}
 template<typename T>HD quat<T>quat<T>::vec(const vec3<T,V>&a,const vec3<T,V>&b){
-auto na=nor(a);auto nb=nor(b);T v=dot(a,b);if(v>T(1)-eps)return{T(1),T(0),T(0),T(0)};
-if(v<T(-1)+eps){vec3<T,V>c=abs(na.x)<T(0.9)?vec3<T,V>{1,0,0}:vec3<T,V>{0,1,0};
+auto na=nor(a);auto nb=nor(b);T v=dot(a,b);if(v>T(1)-fsytd::lim<T>::eps())return{T(1),T(0),T(0),T(0)};
+if(v<T(-1)+fsytd::lim<T>::eps()){vec3<T,V>c=abs(na.x)<T(0.9)?vec3<T,V>{1,0,0}:vec3<T,V>{0,1,0};
 quat n=nor(cs(na,c));return norm({T(0),n.x,n.y,n.z});}vec3<T,V>c=cs(na,nb);return norm({T(1)+v,c.x,c.y,c.z});}
 template<typename T>
 template<typename tp>
@@ -31,14 +32,14 @@ template<typename T>HD quat<T>&quat<T>::operator*=(const quat&v){*this=(*this)*v
 template<typename T>HD quat<T>slerp(quat<T>&a,quat<T>&b,T t){
 a=quat<float>::norm(a);b=quat<float>::norm(b);T d=a.w*b.w+a.x*b.x+a.y*b.y+a.z*b.z;
 // printf("%f\n",d);
-d=max(T(-1),min(T(1),d));if(d<T(0)){d=-d;b={-b.w,-b.x,-b.y,-b.z};}
+d=fsytd::max(T(-1),fsytd::min(T(1),d));if(d<T(0)){d=-d;b={-b.w,-b.x,-b.y,-b.z};}
 if(d>T(0.99995)){quat<T>r={a.w+(b.w-a.w)*t,a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t,a.z+(b.z-a.z)*t};return r;}
 T th=acos(a.w*b.w+a.x*b.x+a.y*b.y+a.z*b.z);T v1=sin((1-t)*th)/sin(th),v2=sin(t*th)/sin(th);
 return quat<T>(a.w*v1+b.w*v2,a.x*v1+b.x*v2,a.y*v1+b.y*v2,a.z*v1+b.z*v2);}
 template<typename T>
 HD quat<T>quat<T>::operator-(const quat<T>&a)const{return{w-a.w,x-a.x,y-a.y,z-a.z};}
 template<typename T>
-HD bool quat<T>::operator==(const quat<T>&a)const{return w-a.w<eps&&x-a.x<eps&&y-a.y<eps&&z-a.z<eps;}
+HD bool quat<T>::operator==(const quat<T>&a)const{return w-a.w<fsytd::lim<T>::eps()&&x-a.x<fsytd::lim<T>::eps()&&y-a.y<fsytd::lim<T>::eps()&&z-a.z<fsytd::lim<T>::eps();}
 template<typename T>
 HD quat<T>quat<T>::operator-()const{return{-w,-x,-y,-z};}
 template<typename T>
