@@ -7,3 +7,4 @@ template<typename T>struct shut{
     HD T pdf()const;
 };
 #include"../../src/camera/shut.cpp"
+

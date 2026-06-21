@@ -1,15 +1,18 @@
 cmake_minimum_required(VERSION 3.10)
 
+set(CMAKE_CUDA_COMPILER /opt/cuda/bin/nvcc)
 set(CMAKE_CUDA_HOST_COMPILER /usr/bin/g++-15)
 
 project(LCP1 LANGUAGES CXX CUDA)
 
 set(CMAKE_CXX_STANDARD 20)
 
+find_package(CUDAToolkit REQUIRED)
+
 include_directories(include)
 
 add_executable(a
-    main.cpp
+    a.cpp
     ${CAMERA_SRCS}
     ${CORE_SRCS}
     ${LENS_SRCS}
@@ -19,6 +22,7 @@ add_executable(a
     ${UTIL_SRCS}
 )
 
+target_link_libraries(a PRIVATE CUDA::cudart)
 add_executable(cuda_smoke
     a.cu
 )

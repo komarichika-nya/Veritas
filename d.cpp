@@ -274,13 +274,7 @@ Projective<float,DOF<float>,Box<float>>cam(pos,lens,sh,film,w,h,45.0f);
 cam.pos.mv(vec3<float,P>(0,5,20));
 cam.pos=cam.pos.look(cam.pos.p,vec3<float,P>(0,6,0),vec3<float,V>(0,1,0));
 //printf("f:(%f %f %f) r:(%f %f %f) u:(%f %f %f)\n",cam.pos.f.x,cam.pos.f.y,cam.pos.f.z,cam.pos.r.x,cam.pos.r.y,cam.pos.r.z,cam.pos.u.x,cam.pos.u.y,cam.pos.u.z);
-Mesh<float>*me=new Mesh<float>();
-me->pos.push_back(vec3<float,P>{0,6,0});
-me->pos.push_back(vec3<float,P>{-3,3,0});
-me->pos.push_back(vec3<float,P>{3,3,0});
-me->idx.push_back(vec3<int,P>{2,1,0});
-me->face_idx.push_back(0);
-vec3<float,V>n=me->get_normal(0);
+
 int spp=200;
 #pragma omp parallel for
 for(int y=0;y<h;y++){
@@ -309,7 +303,6 @@ auto tile=cam.film->getTile(bd);
 //double acc=albedo(vec3<float,V>(0,3,0),0.0238f,1000);
 printf("%f\n",acc);
 film.writeImage("b.ppm");
-delete me;
 //printf("%f\n",(float)cnt/to);
 return 0;
 }

@@ -19,4 +19,3 @@ HD surface(const vec3<T,P>&pos,const vec3<T,V>&face_normal,const vec3<T,V>&wo);
 HD surface(const vec3<T,P>&pos,const vec3<T,V>&shading_normal);};
 #include"../../src/util/surface.cpp"
 
-

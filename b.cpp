@@ -1,13 +1,57 @@
-#include<bits/stdc++.h>
-using namespace std;
-using u32=uint32_t;
-using u64=uint64_t;
-u64 qp(u64 a,u64 b,u64 m){u64 ans=1ull;a%=m;for(;b;b>>=1,a=a*a%m)(b&1)&&(ans=ans*a%m);return ans;}
-u64 sum(u64 a,u64 c,u64 m,u64 x){u64 ans=0,cur=1;a%=m;for(;x;x>>=1,cur=cur*(1+a)%m,a=a*a%m)(x&1)&&(ans=(ans*a%m+cur%m));return ans;}
-float cg(u64 a,u64 c,u64 m,u64 x){return float(rng(a,c,m,x))/float(4294967296.0);}
-u64 rng(u64 a,u64 c,u64 m,u64 x0,int x){if(!x)return x0;u64 ai=qp(a,x,m),gs=sum(a,c,m,x);return (ai*x0+c*gs)%m;}
-//string ec(u64 a,u64 c,u64 m,u64 sd){int n=s.size();string ans;ans.resize(n);int x;for(x=0;x<n;x++){u64 ks=rng(a,c,m,sd,x);ans[x]=s[x]^(char)(ks&0xff);}return ans;}
+#include<cstdio>
+namespace fsytd{
+    template<typename T>class allocator{
+        using value_type=T;
+        char*start=nullptr;char*end=nullptr;size_t sz=0;
+        union node{node*nxt;alignas(T)char buf[sizeof(T)];};
+        enum{MIN_SIZE=8,MAX_SIZE=128,NEXT_FREE=16,MEMBER_SIZE=20};
+        node*list[NEXT_FREE]={};
+        //n byte
+        size_t up(size_t n){return(n+MIN_SIZE-1)&~(MIN_SIZE-1);}
+        size_t idx(size_t n){return(n+MIN_SIZE-1)/MIN_SIZE-1;}
+        node*fill(size_t n){
+            size_t t=MEMBER_SIZE;
+            char*ck=chunk_alloc(n,t);if(t==1)return reinterpret_cast<node*>(ck);
+            node*head=reinterpret_cast<node*>(ck);
+            size_t id=idx(n);list[id]=reinterpret_cast<node*>(ck+n);
+            node*cur=list[id];size_t x=1;
+            //for x in range(all_menber)
+            for(;x<t-1;x++)cur->nxt=reinterpret_cast<node*>(ck+(x+1)*n),cur=cur->nxt;
+            cur->nxt=nullptr;return head;
+        }
+        char*chunk_alloc(size_t n,size_t&obj){
+            //total byte.
+            size_t tot=n*obj;size_t l=start&&end?end-start:0;
+            if(l>=tot){char*tmp=start;start+=tot;return tmp;}
+            if(l>=n){obj=l/n;tot=n*obj;char*tmp=start;start+=tot;return tmp;}
+            size_t apply=2*tot+up(sz>>4);
+            if(l>0){size_t id=idx(l);reinterpret_cast<node*>(start)->nxt=list[id];list[id]=reinterpret_cast<node*>(start);}
+            start=static_cast<char*>(::operator new(apply));end=start+apply;
+            sz+=apply;return chunk_alloc(n,obj);
+        }
+    public:
+        constexpr allocator()=default;
+        constexpr allocator&operator=(const allocator&)=default;
+        constexpr ~allocator()=default;
+        //n number
+        T*allocate(size_t np){
+            if(np==0)return nullptr;
+            size_t n=np*sizeof(T);
+            if(n>MAX_SIZE)return static_cast<T*>(::operator new(n));
+            size_t id=idx(up(n));node*tmp=list[id];if(tmp==nullptr)return reinterpret_cast<T*>(fill(up(n))->buf);
+            list[id]=tmp->nxt;return reinterpret_cast<T*>(tmp->buf);
+        }
+        //n number
+        void deallocate(T*p,size_t np){
+            size_t n=np*sizeof(T);
+            if(n>MAX_SIZE){::operator delete(p);return;}
+            size_t id=idx(up(n));node*nd=reinterpret_cast<node*>(p);
+            nd->nxt=list[id];list[id]=nd;
+        }
+    };
+}
 int main(){
-int a=100,c=200,m=300,v=400;int x,n=1e5;double ex=0,var=0,cov=0,covv=0,s=0,sq=0;
-for(x=1;x<=10;x++){double u=cg(a,c,m,v);cerr<<u<<endl;s+=u;sq+=(double)u*u;}ex=s/n,var=sq/n-ex*ex;printf("ex:%.6f var:%.6f",ex,var);
-ex=var=sq=0;return 0;}
+    fsytd::allocator<int>alloc;int*p=alloc.allocate(4);
+    int x;for(x=0;x<5;x++){printf("x:%p %d\n",p+x,*(p+x));}
+    return 0;
+}
