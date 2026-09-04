@@ -7,3 +7,12 @@ a
 b
 c
 d
+b.cpp
+c.cpp
+d.cpp
+*.py
+*.sh
+*.obj
+*.mtl
+doc/
+

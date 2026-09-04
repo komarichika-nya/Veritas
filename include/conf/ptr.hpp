@@ -1,4 +1,5 @@
 #include"conf/conf.hpp"
+namespace veritas{
 struct share{};struct unique{};struct weak{};
 template<typename tp,typename typename deleter>class Ptr{};
 template<typename T,typename deleter>class Ptr<unique,T,deleter>{
@@ -19,3 +20,4 @@ public:
     HD T*release(){T*t=ptr;ptr=nullptr;return t;}
     HD void reset(T*p=nullptr){if(ptr!=p)delete ptr,ptr=p;}
 };
+}//namespace veritas

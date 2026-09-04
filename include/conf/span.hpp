@@ -2,6 +2,7 @@
 #include"conf/lim.hpp"
 #include<cassert>
 #include<cstddef>
+namespace veritas{
 namespace fsytd{
     HD inline constexpr size_t dynamic=lim<size_t>::max();
     template<typename T,size_t extent=dynamic>class span{
@@ -32,3 +33,4 @@ namespace fsytd{
         }
     };
 }//namespace fsytd
+}//namespace veritas

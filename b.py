@@ -1,12 +1,25 @@
-import mitsuba as mi
-import drjit as mi
-mi.set_variant('llm_ad_rgb')
-sence=mi.load_dict(mi.cornell_box())
-cam_o=mi.Point3f(0,1,3)
-cam_d=mi.normalize(mi.Vector3f(0,-0.5,-1));
-cam_w,cam_h=2.0,2.0
-wh=(800,600)
+import re
+vn=[]
+v=[]
+f=[]
+with open('/home/chika/chika/lcp1/a.obj','r',encoding='utf-8') as fi:
+    for l in fi:
+        if l.strip().startswith('#'):continue
+        if not l.strip():continue
+        if l.strip().startswith('v'):
+            pt=l.split(' ')
+            v.append([pt[1],pt[2],pt[3]])
+        elif l.strip().startswith('f'):
+            fc=re.split(r' |//',l)
+            f.extend(fc[1:6])
+        elif l.strip().startswith('vn'):
+            nor=l.split(' ')
+            vn.extend(nor[1:3])
+        else:continue
+    print(int(len(v)))
+    print(int(len(f)))
+    for x in v:print(f'{x[0]} {x[1]} {x[2]}')
+    for x in f:print(x)
+            
 
-img=mi.render(sence,spp=256)
-mi.Bitmap(img).write('a.exr')
 

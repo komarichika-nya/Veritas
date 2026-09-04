@@ -1,3 +1,4 @@
+namespace veritas{
 namespace fsytd{
     namespace EXR{
         void sv(const char*f,int w,int h,const float*rgb){
@@ -31,4 +32,5 @@ namespace fsytd{
             fseek(ptr,pos,SEEK_SET);fwrite(tmp.data(),8,h,ptr);fclose(ptr);
         }
     }
-}//namespace fsystd
+}//namespace fsytd
+}//namespace veritas

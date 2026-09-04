@@ -1,10 +1,12 @@
 #pragma once
 #include"conf/conf.hpp"
-template<typename T>struct shut{
-    T begin,end;
-    HD shut(T begin,T end);
-    HD T sample(T u)const;
-    HD T pdf()const;
-};
-#include"../../src/camera/shut.cpp"
+ namespace veritas{
+    template<typename T>struct Shut{
+        T begin,end;
+        Shut(T begin,T end):begin(begin),end(end){}
+        T sample(T u)const{return begin+(end-begin)*u;}
+        T pdf()const{return T(1)/(end-begin);}
+    };
+}//namespace veritas
+
 

@@ -1,3 +1,4 @@
+namespace veritas{
 namespace fsytd{
     template<typename T>class allocator{
         using value_type=T;
@@ -67,3 +68,4 @@ namespace fsytd{
         void destory(U*p){p->~U();}
     };
 }//namespace fsytd
+}//namespace veritas

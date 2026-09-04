@@ -11,27 +11,51 @@
 #include"conf/lim.hpp"
 #include"util/shape.hpp"
 #include"conf/span.hpp"
-template<typename T>class Mesh{
-    inline static std::vector<const Shape<Triangle,T>*>*v=nullptr;
-    const Shape<Triangle,T>*getMesh(size_t mesh_idx)const{return (*v)[mesh_idx];}
-public:
-    constexpr Mesh()=default;
-    std::vector<const Shape<Triangle,T>*>*build(const Shape<Triangle,T>*s,fsytd::allocator<Shape<Triangle,T>>alloc);
-    HD const T area(size_t mesh_idx,size_t tri_idx)const;
-    HD const bound3<T>bounds(size_t mesh_idx,size_t tri_idx)const;
-    HD const T solid_angle(size_t mesh_idx,size_t tri_idx,const vec3<T,P>&p)const;
+namespace veritas{
+    template<typename T>class Mesh{
+        const Shape<Triangle,T>*mesh=nullptr;
+        //const Shape<Triangle,T>*getMesh()const{assert(mesh_idx>=0&&static_cast<size_t>(mesh_idx)<v->size());return (*v)[mesh_idx];}
+    public:
+        constexpr Mesh()=default;
+        constexpr Mesh(const Shape<Triangle,T>*mesh):mesh(mesh){}
+        const T area(int tri_idx)const{
+            const int*id=&mesh->idx_vec[tri_idx*3];
+            vec3<T,P>p0=mesh->pos[id[0]],p1=mesh->pos[id[1]],p2=mesh->pos[id[2]];
+            return T(0.5)*len(cs(p1-p0,p2-p0));
+        }
+        const bound3<T>bounds(int tri_idx)const{
+            const int*id=&mesh->idx_vec[tri_idx*3];
+            vec3<T,P>p0=mesh->pos[id[0]],p1=mesh->pos[id[1]],p2=mesh->pos[id[2]];
+            return bound3<T>::add(bound3<T>(p0,p1),p2);
+        }
+        const T solid_angle(int tri_idx,const vec3<T,P>&p)const{
+            const int*id=&mesh->idx_vec[tri_idx*3];
+            vec3<T,P>p0=mesh->pos[id[0]],p1=mesh->pos[id[1]],p2=mesh->pos[id[2]];
+            return spherical_area(nor(p0-p),nor(p1-p),nor(p2-p));
+        }
+        veritas::fsytd::optional<surface<T>>intersect(int tri_idx,const ray<T>*r)const{
+            const int*id=&mesh->idx_vec[tri_idx*3];
+            //printf("%d %d %d %d\n",sizeof(mesh->pos)/sizeof(vec3<T,P>),id[0],id[1],id[2]);
+            vec3<T,P>p0=mesh->pos[id[0]],p1=mesh->pos[id[1]],p2=mesh->pos[id[2]];
+            vec3<T,V>e1=p1-p0,e2=p2-p0,pv=cs(r->d,e2);T det=dot(e1,pv);
+            if(veritas::fsytd::abs(det)<veritas::fsytd::lim<T>::eps())return{};T inv=T(1)/det;
+            vec3<T,V>tv=r->o-p0;T u=dot(tv,pv)*inv;if(u<T(0)||u>T(1))return{};
+            vec3<T,V>qv=cs(tv,e1);T v=dot(r->d,qv)*inv;if(v<T(0)||u+v>T(1))return{};
+            T t=dot(e2,qv)*inv;if(t<r->tmn||t>r->tmx)return{};
+            vec3<T,V>n=nor(cs(e1,e2));
+            //vec3<T,V>n0=mesh->normal[id[0]],n1=mesh->normal[id[1]],n2=mesh->normal[id[2]];
+            //vec3<T,V>nr=nor(n0*(T(1)-u-v)+n1*u+n2*v);
+            //vec2<T,P>uv0=mesh->uv[id[0]],uv1=mesh->uv[id[1]],uv2=mesh->uv[id[2]];
+            //I will add ray, trust me
+            return surface<T>(vec3<T,P>(T(1)-u-v,u,v),n,tri_idx,mesh->is_reverse);
 
-};
-template<typename T>struct hit{T t,b0,b1,b2;};
-namespace fsytd{
-    template<typename T>
-    HD const fsytd::optional<hit<T>>intersect(const ray<T>*r,const vec3<T,P>&p0,const vec3<T,P>&p1,const vec3<T,P>&p2){
-        vec3<T,V>e1=p1-p0,e2=p2-p0,pv=cs(r->d,e2);T det=dot(e1,pv);
-        if(abs(det)<eps)return{};T inv=T(1)/det;
-        vec3<T,V>tv=r->o-p0;T u=dot(tv,pv)*inv;if(u<T(0)||u>T(1))return{};
-        vec3<T,V>qv=cs(tv,e1);T v=dot(r->d,qv)*inv;if(v<T(0)||u+v>T(1))return{};
-        T t=dot(e2,qv)*inv;if(t<r->tmn||t>r->tmx)return{};return hit<T>{t,T(1)-u-v,u,v};
-    }
-}
-#include"../../src/util/mesh.cpp"
+        }
+    };
+    //Sence::std::vector<Mesh<T>*>*sence;
+    //for x in h:
+    //  for y in w:
+    //      auto check=(*sence)[mesh_idx]->intersect(tri_idx,&r)
+    //      render()
+    //      ...
+}//namespace veritas
 
