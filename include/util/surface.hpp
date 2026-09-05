@@ -18,14 +18,14 @@ namespace veritas{
         tp&self(){return static_cast<tp&>(this);}
         const tp&self()const{return static_cast<tp&>(this);}
     };
-    template<typename T>class surface:Interaction<surface<T>,T>{
+    template<typename T>class surface:public Interaction<surface<T>,T>{
+    public:
         vec3<T,V>dpu,dpv;
         vec3<T,V>dnu,dnv;
         int face_idx=0;
         vec2<T,P>du,dv;
         bool flip=1;
         struct{vec3<T,V>n;vec3<T,V>dpu,dpv;vec3<T,V>dnu,dnv;}shading;
-    public:
         surface()=default;
         surface(const vec3<T,P>&pos,const vec3<T,V>&n,vec2<T,P>&uv,vec3<T,V>&wo,vec3<T,V>&dpu,vec3<T,V>&dpv,vec3<T,V>&dnu,vec3<T,V>&dnv,vec2<T,P>&du,vec2<T,P>&dv,int face_idx,bool flip):Interaction<surface<T>,T>(pos,uv,n,nor(wo)),dpu(dpu),dpv(dpv),dnu(dnu),dnv(dnv),du(du),dv(dv),face_idx(face_idx){
             if(flip)n=-n;shading.n=n;shading.dpu=dpu;shading.dpv=dpv;shading.dnu=dnu,shading.dnv=dnv;

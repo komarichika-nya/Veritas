@@ -84,6 +84,7 @@ namespace veritas{
         constexpr Shape(bool is_reverse,const vector<int>&idx_vec,const vector<vec3<T,P>>&pos,
             const vector<vec3<T,V>>&normal,const vector<vec3<T,V>>&tangent,const vector<vec2<T,P>>&uv):is_reverse(is_reverse),num_vec(pos.size()),num_idx(idx_vec.size()/3){
             if(!idx_vec.empty())this->idx_vec=BufferCache<int>::look_or_add(idx_vec.data(),idx_vec.size(),fsytd::allocator<int>{});
+            //printf("%d %d %d\n",idx_vec[0],idx_vec[1],idx_vec[2]);
             if(!pos.empty())this->pos=BufferCache<vec3<T,P>>::look_or_add(pos.data(),pos.size(),fsytd::allocator<vec3<T,P>>{}); 
             if(!normal.empty())this->normal=BufferCache<vec3<T,V>>::look_or_add(normal.data(),normal.size(),fsytd::allocator<vec3<T,V>>{});
             if(!tangent.empty())this->tangent=BufferCache<vec3<T,V>>::look_or_add(tangent.data(),tangent.size(),fsytd::allocator<vec3<T,V>>{});
@@ -91,7 +92,7 @@ namespace veritas{
         }
     };
     template<typename T>T spherical_area(const vec3<T,V>&a,const vec3<T,V>&b,const vec3<T,V>&c){
-        return abs((T(2)*atan2(dot(a,cs(b,c)),T(1)+dot(a,b)+dot(a,c)+dot(b,c))));
+        return fabs((T(2)*atan2(dot(a,cs(b,c)),T(1)+dot(a,b)+dot(a,c)+dot(b,c))));
     }
 }//namespace veritas
 

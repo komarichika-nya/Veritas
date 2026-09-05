@@ -34,11 +34,12 @@ namespace veritas{
             return spherical_area(nor(p0-p),nor(p1-p),nor(p2-p));
         }
         veritas::fsytd::optional<surface<T>>intersect(int tri_idx,const ray<T>*r)const{
+            //assert(tri_idx<66);
             const int*id=&mesh->idx_vec[tri_idx*3];
             //printf("%d %d %d %d\n",sizeof(mesh->pos)/sizeof(vec3<T,P>),id[0],id[1],id[2]);
             vec3<T,P>p0=mesh->pos[id[0]],p1=mesh->pos[id[1]],p2=mesh->pos[id[2]];
             vec3<T,V>e1=p1-p0,e2=p2-p0,pv=cs(r->d,e2);T det=dot(e1,pv);
-            if(veritas::fsytd::abs(det)<veritas::fsytd::lim<T>::eps())return{};T inv=T(1)/det;
+            if(fabs(det)<veritas::fsytd::lim<T>::eps())return{};T inv=T(1)/det;
             vec3<T,V>tv=r->o-p0;T u=dot(tv,pv)*inv;if(u<T(0)||u>T(1))return{};
             vec3<T,V>qv=cs(tv,e1);T v=dot(r->d,qv)*inv;if(v<T(0)||u+v>T(1))return{};
             T t=dot(e2,qv)*inv;if(t<r->tmn||t>r->tmx)return{};
@@ -47,7 +48,8 @@ namespace veritas{
             //vec3<T,V>nr=nor(n0*(T(1)-u-v)+n1*u+n2*v);
             //vec2<T,P>uv0=mesh->uv[id[0]],uv1=mesh->uv[id[1]],uv2=mesh->uv[id[2]];
             //I will add ray, trust me
-            return surface<T>(vec3<T,P>(T(1)-u-v,u,v),n,tri_idx,mesh->is_reverse);
+            //3 is face_id
+            return surface<T>(vec3<T,P>(T(1)-u-v,u,v),n,t,mesh->is_reverse);
 
         }
     };
