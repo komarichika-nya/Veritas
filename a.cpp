@@ -30,6 +30,7 @@ Shut<float>sh(0,0);
 Independent<float>in;
 std::vector<int>idx,tri_idx;
 std::vector<vec3<float,P>>ps;
+std::vector<vec3<float,V>>normal;
 Projective<float,Box<float>,DOF<float>>cam(pos,lens,sh,film,w,h,45.0f);
 vec3<float,P>sun(0,20,0);vec3<float,V>e1(4,15,2);vec3<float,V>e2(0,15,4);Spectrum<float>sc(10,10,10);
 vec3<float,V>sp(const vec3<float,V>&n,Independent<float>&s){
@@ -69,10 +70,11 @@ Spectrum<float>render(ray<float>*r,int dep,Mesh<float>&mesh,Independent<float>&l
                 float u=float(0.5)*(r->d.y+float(1.0));
                 return Spectrum<float>::lerp(Spectrum<float>(1,1,1),Spectrum<float>(0.3,0.5,0.7),u);
             }  
-            vec3<float,P>p=r->o+r->d*t;Spectrum<float>rho;vec3<float,V>n;
+            vec3<float,P>p=r->o+r->d*t;Spectrum<float>rho;vec3<float,V>n;vec3<float,V>ns;
             if(tp==0){
                 //printf("1\n");
-                n=sur.n;
+                n=sur.n;ns=sur.shading.n;
+                //printf("ng:%.6f %.6f %.6f ns:%.6f %.6f %.6f\n",n.x,n.y,n.z,ns.x,ns.y,ns.z);
                 rho=Spectrum<float>(0.7,0.7,0.7);
             }
             if(tp==1){
@@ -82,7 +84,9 @@ Spectrum<float>render(ray<float>*r,int dep,Mesh<float>&mesh,Independent<float>&l
             float u=local.get1d(),v=local.get1d();vec3<float,V>rd=u*e1+v*e2;vec3<float,P>pt=sun+vec3<float,P>(rd.x,rd.y,rd.z);
             vec3<float,V>dir=pt-p;vec3<float,V>n1=nor(cs(e1,e2));float s=len(cs(e1,e2));float dis=std::max(len(dir),eps);dir=nor(dir);Spectrum<float>le(0,0,0);
             float s1=dot(dir,n);float s2=dot(dir,n1);if(s1>float(0)&&s2>float(0)){G=s1*s2/(dis*dis);le=rho/float(3.14159265)*G*sc*s;}
-            ray<float>r1;vec3<float,V>nw=n*1e-6f;r1.o=p+vec3<float,P>(nw.x,nw.y,nw.z);r1.d=sp(n,local);Spectrum<float>li=render(&r1,dep+1,mesh,local);
+            ray<float>r1;r1.o=sur.pos+n*1e-6f;r1.d=sp(n,local);r1.tmn=1e-4f*fsytd::max(1.0f,fsytd::abs(len(sur.pos)));
+            if(dot(r1.d,n)*dot(r1.d,ns)<=0.0f)return le;
+            Spectrum<float>li=render(&r1,dep+1,mesh,local);
             return rho*li+le;        
 }
 
@@ -109,7 +113,7 @@ Spectrum<float>render1(ray<float>*r,int dep,Mesh<float>&mesh){
     return Spectrum<float>::lerp(Spectrum<float>(1,1,1),Spectrum<float>(0.3,0.5,0.7),u);
 }
 int main(){
-int spp=100;
+int spp=1024;
 cam.get_pos().mv(vec3<float,P>(0,5,20));
 cam.get_pos()=cam.get_pos().look(cam.get_pos().p,vec3<float,P>(0,6,0),vec3<float,V>(0,1,0));
 FILE*p=freopen("a.in","r",stdin);
@@ -118,6 +122,7 @@ float a,b,c;
 int n,n1;std::cin>>n;
 int x;for(x=0;x<n;x++)std::cin>>a>>b>>c,ps.push_back({a,b,c}),tri_idx.push_back(x);
 int fuc;std::cin>>n1;for(x=0;x<n1;x++)std::cin>>fuc,idx.push_back(fuc);
+int nr;std::cin>>nr;for(x=0;x<nr;x++)std::cin>>a>>b>>c,normal.push_back({a,b,c});
 vec3<float,P>lo(1e30f,1e30f,1e30f);vec3<float,P>hi(-1e30f,-1e30f,-1e30f);
 for(auto&v:ps){lo.x=fsytd::min(lo.x,v.x);lo.y=fsytd::min(lo.y,v.y);lo.z=fsytd::min(lo.z,v.z);
 hi.x=fsytd::max(v.x,hi.x);hi.y=fsytd::max(v.y,hi.y);hi.z=fsytd::max(v.z,hi.z);}
@@ -130,7 +135,7 @@ for(auto&v:ps){v.x=(v.x-c1.x)*scale;v.y=(v.y-c1.y)*scale;v.z=(v.z-c1.z)*scale;}
 fclose(p);
 printf("%d %d %d\n",ps.size(),tri_idx.size(),idx.size());// 66 66 96
 
-Shape<Triangle,float>s(0,idx,ps,std::vector<vec3<float,V>>{},std::vector<vec3<float,V>>{},std::vector<vec2<float,P>>{});fsytd::allocator<Shape<Triangle,float>>alloc;
+Shape<Triangle,float>s(0,idx,ps,normal,std::vector<vec3<float,V>>{},std::vector<vec2<float,P>>{});fsytd::allocator<Shape<Triangle,float>>alloc;
 //printf("%d %d\n",sizeof(s.idx_vec)/sizeof(int),sizeof(s.pos)/sizeof(vec3<float,P>));
 Mesh<float>mesh(&s);
 #pragma omp parallel for

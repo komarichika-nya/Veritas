@@ -42,17 +42,15 @@ namespace veritas{
             if(fsytd::abs(det)<veritas::fsytd::lim<T>::eps())return{};T inv=T(1)/det;
             vec3<T,V>tv=r->o-p0;T u=dot(tv,pv)*inv;if(u<T(0)||u>T(1))return{};
             vec3<T,V>qv=cs(tv,e1);T v=dot(r->d,qv)*inv;if(v<T(0)||u+v>T(1))return{};
-            T t=dot(e2,qv)*inv;if(t<r->tmn||t>r->tmx)return{};
-            vec3<T,V>n=nor(cs(e1,e2));//bool flag=dot(n,r->d)<T(0);
-            //vec3<T,V>n0=mesh->normal[id[0]],n1=mesh->normal[id[1]],n2=mesh->normal[id[2]];
-            //vec3<T,V>nr=nor(n0*(T(1)-u-v)+n1*u+n2*v);
-            //vec2<T,P>uv0=mesh->uv[id[0]],uv1=mesh->uv[id[1]],uv2=mesh->uv[id[2]];
-            //I will add ray, trust me
-            //
-            //
-            //3 is face_id but now use t, i will fix latter
-            
-            return surface<T>(vec3<T,P>(T(1)-u-v,u,v),n,t,tri_idx,mesh->is_reverse);
+            T t=dot(e2,qv)*inv;if(t<r->tmn||t>r->tmx)return{};surface<T>s;
+            vec3<T,V>ng=nor(cs(e1,e2));if(mesh->is_reverse)ng=-ng;vec3<T,V>ns=ng;
+            if(mesh->normal){vec3<T,V>n0=mesh->normal[id[0]],n1=mesh->normal[id[1]],n2=mesh->normal[id[2]];
+            ns=nor(n0*(T(1)-u-v)+n1*u+n2*v);if(mesh->is_reverse)ns=-ns;if(dot(ng,ns)<T(0))ng=-ng;}
+            bool back=dot(ng,r->d)>T(0);if(back)ng=-ng,ns=-ns;
+            s.n=ng;s.pos=r->o+r->d*t;s.bary=vec3<T,P>(T(1-u-v),u,v);s.shading.n=ns;s.face_idx=tri_idx;s.flip=back;s.wo=-nor(r->d);s.t=t;
+            if(mesh->uv)s.uv=(T(1)-u-v)*mesh->uv[id[0]]+u*mesh->uv[id[1]]+v*mesh->uv[id[2]];
+            //dpu,dpv,dnu,dnv
+            return s;
 
         }
     };

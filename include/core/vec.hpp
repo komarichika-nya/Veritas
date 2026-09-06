@@ -1,11 +1,12 @@
 #pragma once
 #include<cmath>
 #include"conf/conf.hpp"
+#include"conf/lim.hpp"
 namespace veritas{
     struct P{};struct V{};
     template<typename T,int N>struct vec_type;
     template<typename T>struct vec_type<T,2>{T x,y;};
-    template<typename T>struct vec_type<T,3>{T x,y,z;};
+    template<typename T>struct vec_type<T,3>{T x=T(0),y=T(0),z=T(0);};
     template<typename T>struct vec_type<T,4>{T x,y,z,w;};
     template<typename T,typename tag,int N>
     struct vec:vec_type<T,N>{

@@ -20,7 +20,7 @@ namespace veritas{
 #define RGB_OP(op)\
     HD RGB operator op (const RGB&a)const{return{c[0] op a.c[0],c[1] op a.c[1],c[2] op a.c[2]};}
     RGB_OP(+);RGB_OP(-);RGB_OP(*);RGB_OP(/)
-};
+    };
 #if defined(RGB_MOD)||!defined(SPECTRUM_MOD)
 #define Spectrum RGB
 #endif
