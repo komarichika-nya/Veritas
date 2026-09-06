@@ -1,3 +1,4 @@
+#pragma once
 namespace veritas{
 namespace fsytd{
     template<typename T>class allocator{

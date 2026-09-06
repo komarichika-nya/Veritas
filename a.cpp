@@ -18,6 +18,7 @@
 #include"util/fresnel.hpp"
 #include<cassert>
 #include<vector>
+#include"data-struct/kd-tree.hpp"
 using namespace veritas;
 const int w=800,h=600;
 using std::isnan;
@@ -134,10 +135,10 @@ vec3<float,P>c1((hi.x+lo.x)*0.5f,lo.y,(hi.z+lo.z)*0.5f);
 for(auto&v:ps){v.x=(v.x-c1.x)*scale;v.y=(v.y-c1.y)*scale;v.z=(v.z-c1.z)*scale;}
 fclose(p);
 printf("%d %d %d\n",ps.size(),tri_idx.size(),idx.size());// 66 66 96
-
 Shape<Triangle,float>s(0,idx,ps,normal,std::vector<vec3<float,V>>{},std::vector<vec2<float,P>>{});fsytd::allocator<Shape<Triangle,float>>alloc;
 //printf("%d %d\n",sizeof(s.idx_vec)/sizeof(int),sizeof(s.pos)/sizeof(vec3<float,P>));
 Mesh<float>mesh(&s);
+std::vector<int>face;Kd_tree<float>kd(mesh,1.0f,1.0f);int root=kd.build<SplitMode::sah>(0,idx.size()/3);
 #pragma omp parallel for
 for(int y=0;y<h;y++){
 Independent<float>local=in.clone(y);

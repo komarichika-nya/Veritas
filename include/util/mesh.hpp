@@ -51,8 +51,8 @@ namespace veritas{
             if(mesh->uv)s.uv=(T(1)-u-v)*mesh->uv[id[0]]+u*mesh->uv[id[1]]+v*mesh->uv[id[2]];
             //dpu,dpv,dnu,dnv
             return s;
-
         }
+        const Shape<Triangle,T>*getMesh()const{return mesh;}
     };
     //Sence::std::vector<Mesh<T>*>*sence;
     //for x in h:

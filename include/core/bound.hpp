@@ -8,15 +8,17 @@ namespace veritas{
     template<typename T>struct bound_type<T,3>{vec3<T,P>mn,mx;};
     template<typename T,int N>
     struct bound:bound_type<T,N>{
-        using bound_type<T,N>::mx;
         using bound_type<T,N>::mn;
+        using bound_type<T,N>::mx;
+        T MN=fsytd::lim<T>::min(),MX=fsytd::lim<T>::max();
         bound()=default;
-        bound(vec2<T,P>mn,vec2<T,P>mx)requires(N==2):bound_type<T,2>{mn,mx}{}   
-        bound(vec3<T,P>mn,vec3<T,P>mx)requires(N==3):bound_type<T,3>{mn,mx}{}
+        bound(vec2<T,P>mn,vec2<T,P>mx)requires(N==2):bound_type<T,2>{mn=vec2<T,P>(MX,MX),mx=vec2<T,P>(MN,MN)}{}   
+        bound(vec3<T,P>mn,vec3<T,P>mx)requires(N==3):bound_type<T,3>{mn=vec3<T,P>(MX,MX,MX),mx=vec3<T,P>(MN,MN,MN)}{}
         vec<T,P,N>&operator[](int x){return x==0?mn:mx;}
         const vec<T,P,N>&operator[](int x)const{return x==0?mn:mx;}   
         bound<T,N>make(const vec<T,P,N>&a,const vec<T,P,N>&b){return bound<T,N>(min(a,b),max(a,b));}    
         void add(const vec<T,P,N>&p){min(mn,p),max(mx,p);}
+        void add(const bound<T,N>&bd){max(mx,bd.mx);min(mn,bd.mn);}
         bound<T,N>intersect(const bound<T,N>&b1,const bound<T,N>&b2){return bound<T,N>(max(b1.mn,b2.mn),min(b1.mx,b2.mx));}    
         bool inside(const bound<T,N>&b,const vec<T,P,N>&v){int x;for(x=0;x<N;x++){if(v[x]>b.mx[x]||v[x]<b.mn[x])return 0;}return 1;}
         T area()const{vec<T,P,N>dif;int x;T ans=T(1);for(x=0;x<N;x++)dif[x]=mx[x]-mn[x]+1,ans*=dif[x];return ans;}
