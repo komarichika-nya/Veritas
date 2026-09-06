@@ -15,8 +15,8 @@ namespace veritas{
         Interaction(const vec3<T,P>&pos,const vec3<T,V>&n):pos(pos),n(n){}
         Interaction(const vec3<T,P>&pos,const vec2<T,P>&uv):pos(pos),uv(uv){}
         Interaction(const vec3<T,P>&pos,const vec2<T,P>&uv,const vec3<T,V>&n):pos(pos),uv(uv),n(n){}
-        tp&self(){return static_cast<tp&>(this);}
-        const tp&self()const{return static_cast<tp&>(this);}
+        tp&self(){return static_cast<tp&>(*this);}
+        const tp&self()const{return static_cast<tp&>(*this);}
     };
     template<typename T>class surface:public Interaction<surface<T>,T>{
     public:
@@ -24,7 +24,8 @@ namespace veritas{
         vec3<T,V>dnu,dnv;
         int face_idx=0;
         vec2<T,P>du,dv;
-        bool flip=1;
+        bool flip=1;T t;
+        vec3<T,P>bary;
         struct{vec3<T,V>n;vec3<T,V>dpu,dpv;vec3<T,V>dnu,dnv;}shading;
         surface()=default;
         surface(const vec3<T,P>&pos,const vec3<T,V>&n,vec2<T,P>&uv,vec3<T,V>&wo,vec3<T,V>&dpu,vec3<T,V>&dpv,vec3<T,V>&dnu,vec3<T,V>&dnv,vec2<T,P>&du,vec2<T,P>&dv,int face_idx,bool flip):Interaction<surface<T>,T>(pos,uv,n,nor(wo)),dpu(dpu),dpv(dpv),dnu(dnu),dnv(dnv),du(du),dv(dv),face_idx(face_idx){
@@ -33,7 +34,7 @@ namespace veritas{
         surface(vec3<T,P>&pos,vec3<T,V>&n,vec3<T,V>&dpu,vec3<T,V>&dpv,vec3<T,V>&dnu,vec3<T,V>&dnv,int face_idx,bool flip):Interaction<surface<T>,T>(pos,n),dpv(dpv),dpu(dpu),dnu(dnu),dnv(dnv){
             if(flip)n=-n;shading.n=n;shading.dpu=dpu;shading.dpv=dpv;shading.dnu=dnu,shading.dnv=dnv;
         }
-        surface(const vec3<T,P>&pos,const vec3<T,V>&n,int face_idx,bool flip):Interaction<surface<T>,T>(pos,n),face_idx(face_idx),flip(flip){}
+        surface(const vec3<T,P>&pos,const vec3<T,V>&n,T t,int face_idx,bool flip):Interaction<surface<T>,T>(pos,n),t(t),face_idx(face_idx),flip(flip){}
         //surface&getSurface(){assert(this->n!=vec3<T,V>(0,0,0));return*surface;}
         //const surface&getSurface()const{assert(this->n!=vec3<T,V>(0,0,0));return*surface;}
                 

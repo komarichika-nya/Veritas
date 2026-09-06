@@ -16,7 +16,7 @@ namespace veritas{
         vec<T,P,N>&operator[](int x){return x==0?mn:mx;}
         const vec<T,P,N>&operator[](int x)const{return x==0?mn:mx;}   
         bound<T,N>make(const vec<T,P,N>&a,const vec<T,P,N>&b){return bound<T,N>(min(a,b),max(a,b));}    
-        bound<T,N>add(const bound<T,N>&b,const vec<T,P,N>&p){return bound<T,N>(min(b.mn,p),max(b.mx,p));}
+        void add(const vec<T,P,N>&p){min(mn,p),max(mx,p);}
         bound<T,N>intersect(const bound<T,N>&b1,const bound<T,N>&b2){return bound<T,N>(max(b1.mn,b2.mn),min(b1.mx,b2.mx));}    
         bool inside(const bound<T,N>&b,const vec<T,P,N>&v){int x;for(x=0;x<N;x++){if(v[x]>b.mx[x]||v[x]<b.mn[x])return 0;}return 1;}
         T area()const{vec<T,P,N>dif;int x;T ans=T(1);for(x=0;x<N;x++)dif[x]=mx[x]-mn[x]+1,ans*=dif[x];return ans;}

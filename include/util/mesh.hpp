@@ -39,17 +39,20 @@ namespace veritas{
             //printf("%d %d %d %d\n",sizeof(mesh->pos)/sizeof(vec3<T,P>),id[0],id[1],id[2]);
             vec3<T,P>p0=mesh->pos[id[0]],p1=mesh->pos[id[1]],p2=mesh->pos[id[2]];
             vec3<T,V>e1=p1-p0,e2=p2-p0,pv=cs(r->d,e2);T det=dot(e1,pv);
-            if(fabs(det)<veritas::fsytd::lim<T>::eps())return{};T inv=T(1)/det;
+            if(fsytd::abs(det)<veritas::fsytd::lim<T>::eps())return{};T inv=T(1)/det;
             vec3<T,V>tv=r->o-p0;T u=dot(tv,pv)*inv;if(u<T(0)||u>T(1))return{};
             vec3<T,V>qv=cs(tv,e1);T v=dot(r->d,qv)*inv;if(v<T(0)||u+v>T(1))return{};
             T t=dot(e2,qv)*inv;if(t<r->tmn||t>r->tmx)return{};
-            vec3<T,V>n=nor(cs(e1,e2));
+            vec3<T,V>n=nor(cs(e1,e2));//bool flag=dot(n,r->d)<T(0);
             //vec3<T,V>n0=mesh->normal[id[0]],n1=mesh->normal[id[1]],n2=mesh->normal[id[2]];
             //vec3<T,V>nr=nor(n0*(T(1)-u-v)+n1*u+n2*v);
             //vec2<T,P>uv0=mesh->uv[id[0]],uv1=mesh->uv[id[1]],uv2=mesh->uv[id[2]];
             //I will add ray, trust me
-            //3 is face_id
-            return surface<T>(vec3<T,P>(T(1)-u-v,u,v),n,t,mesh->is_reverse);
+            //
+            //
+            //3 is face_id but now use t, i will fix latter
+            
+            return surface<T>(vec3<T,P>(T(1)-u-v,u,v),n,t,tri_idx,mesh->is_reverse);
 
         }
     };
