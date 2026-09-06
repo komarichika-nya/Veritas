@@ -16,14 +16,23 @@ namespace veritas{
     public:
         std::vector<int>idx;
         const Shape<Triangle,T>*mesh;
+        int root=-1;
         Kd_tree()=default;
-        Kd_tree(const Mesh<T>&m,T ct,T ci){
+        Kd_tree(const Mesh<T>&m,const SplitMode&mode,T ct,T ci){
             mesh=m.getMesh();
             this->ci=ci;this->ct=ct;
-            idx.resize(mesh->num_idx);
+            idx.resize(mesh->num_vec/3);
             std::iota(idx.begin(),idx.end(),0);
             init();
+            switch(mode){
+                case SplitMode::sah:root=this->build<SplitMode::sah>(0,static_cast<int>(idx.size())-1);
+                case SplitMode::middle:root=this->build<SplitMode::middle>(0,static_cast<int>(idx.size())-1);
+            }
         }
+    private:
+        T ci,ct;static constexpr int M=12;//M is called number of mat
+        int*ls=nullptr,*rs=nullptr;T*lx=nullptr,*rx=nullptr,*ly=nullptr,*ry=nullptr,*lz=nullptr,*rz=nullptr;
+        
         //return the root index
         template<SplitMode mode>
         int build(int l,int r){
@@ -31,14 +40,12 @@ namespace veritas{
             int mid=0;
             if constexpr(mode==SplitMode::sah)mid=sah(l,r);
             if constexpr(mode==SplitMode::middle)mid=l+r>>1;
-            ls[mid]=this->build<mode>(l,mid);
+            ls[mid]=this->build<mode>(l,mid-1);
             rs[mid]=this->build<mode>(mid+1,r);
             update(mid);
             return mid;
         }
     private:
-        T ci,ct;int M=12;//M is called number of mat
-        int*ls=nullptr,*rs=nullptr;T*lx=nullptr,*rx=nullptr,*ly=nullptr,*ry=nullptr,*lz=nullptr,*rz=nullptr;
         void init(){
             fsytd::allocator<int>alloc_int;
             fsytd::allocator<T>alloc_T;
@@ -72,7 +79,9 @@ namespace veritas{
         int sah(int l,int r){
             int rev=r-l;if(rev<=2)return l+r>>1;bound3<T>bd,bdx;
             for(int x=l;x<=r;x++){
+                //printf("%d %d %d %d\n",x,fc[0],fc[1],fc[2]);
                 const int*fc=&mesh->idx_vec[idx[x]*3];
+                //printf("x:%d fc[0]:%d fc[1]:%d fc[2]:%d %d %d\n",x,fc[0],fc[1],fc[2],mesh->num_idx,mesh->num_vec);
                 vec3<T,P>p0=mesh->pos[fc[0]],p1=mesh->pos[fc[1]],p2=mesh->pos[fc[2]];
                 bd.add(p0),bd.add(p1),bd.add(p2);bdx.add((p0+p1+p2)/T(3));
             }
@@ -80,21 +89,21 @@ namespace veritas{
             for(int x=0;x<3;x++){
                 T mxv=(&bd.mx.x)[x],mnv=(&bd.mn.x)[x];
                 if(mxv-mnv<fsytd::lim<T>::eps())continue;T e=M/(mxv-mnv);
-                bound3<T>mat[M+1];int cnt[M];
+                bound3<T>mat[M+1];int cnt[M]={};
                 for(int y=l;y<=r;y++){
                     const int*fc=&mesh->idx_vec[idx[y]*3];
                     vec3<T,P>center=(mesh->pos[fc[0]]+mesh->pos[fc[1]]+mesh->pos[fc[2]])/T(3);
                     int b=((&center.x)[x]-mnv)*e;if(b>=M)b--;cnt[b]++;
                     mat[b].add(mesh->pos[fc[0]]);mat[b].add(mesh->pos[fc[1]]);mat[b].add(mesh->pos[fc[2]]);
                 }
-                int lcnt[M+1],rcnt[M+1],sl=0,sr=0;bound3<T>bdl,bdr,lmat[M],rmat[M];
+                int lcnt[M+1]={},rcnt[M+1]={},sl=0,sr=0;bound3<T>bdl,bdr,lmat[M],rmat[M];
                 for(int y=0;y<M;y++){
-                    lcnt[y]+=cnt[y];
+                    lcnt[y]=cnt[y]+(y>0?cnt[y-1]:0);
                     bdl.add(mat[y]);
                     lmat[y].mx=bdl.mx;lmat[y].mn=bdl.mn;
                 }
                 for(int y=M-1;y>=0;y--){
-                    rcnt[y]+=cnt[y];
+                    rcnt[y]=cnt[y]+(y+1<M?rcnt[y+1]:0);
                     bdr.add(mat[y]);
                     rmat[y].mx=bdr.mx;rmat[y].mn=bdr.mn;
                 }
@@ -109,12 +118,26 @@ namespace veritas{
             T vmax=(&bdx.mx.x)[axis],vmin=(&bdx.mn.x)[axis];
             if(place==-1)return l+r>>1;
             T e=M/(vmax-vmin);
-            auto it=std::partition(idx.begin()+l,idx.begin()+r,[&](int id){const int*fc=&mesh->idx_vec[id*3];
+            auto it=std::partition(idx.begin()+l,idx.begin()+r+1,[&](int id){const int*fc=&mesh->idx_vec[id*3];
                 vec3<T,P>centerx=(mesh->pos[fc[0]]+mesh->pos[fc[1]]+mesh->pos[fc[2]])/T(3);int b=((&centerx.x)[axis]-vmin)*e;
                 if(b>=M)b--;return b>=place;});
-            int mid=it-idx.begin();if(mid>=r||mid<=l)return l+r>>1;return mid;
+            int mid=it-idx.begin();if(mid>r||mid<=l)return l+r>>1;return mid;
         }
         T weight(bound3<T>&bd){auto dif=vec3<T,P>(bd.mx-bd.mn);auto v=max(dif,vec3<T,P>(0,0,0));return v.x*v.y+v.y*v.z+v.z*v.x;}
+    public:
+        ~Kd_tree(){
+            fsytd::allocator<int>alloc_int;fsytd::allocator<T>alloc_T;
+            if(ls)alloc_int.deallocate(ls,mesh->num_idx);
+            if(rs)alloc_int.deallocate(rs,mesh->num_idx);
+            if(lx)alloc_T.deallocate(lx,mesh->num_vec);
+            if(rx)alloc_T.deallocate(rx,mesh->num_vec);
+            if(ly)alloc_T.deallocate(ly,mesh->num_vec);
+            if(ry)alloc_T.deallocate(ry,mesh->num_vec);
+            if(lz)alloc_T.deallocate(lz,mesh->num_vec);
+            if(rz)alloc_T.deallocate(rz,mesh->num_vec);
+            fsytd::allocator<int>::release();
+            fsytd::allocator<T>::release();
+        }
     };
 }
 

@@ -53,7 +53,7 @@ float hit2(const ray<float>*r){
     //assert(fabs(r->d.y)>eps);
     if(fabs(r->d.y)>eps)return -r->o.y/r->d.y;
     return -1e8f;}
-Spectrum<float>render(ray<float>*r,int dep,Mesh<float>&mesh,Independent<float>&local){
+Spectrum<float>render(ray<float>*r,int dep,Mesh<float>&mesh,Independent<float>&local,Kd_tree<float>&kd){
     if(dep>20)return Spectrum<float>(0,0,0);
     bool hit1=0;float mn=1e30f;
     surface<float>sur;
@@ -138,7 +138,7 @@ printf("%d %d %d\n",ps.size(),tri_idx.size(),idx.size());// 66 66 96
 Shape<Triangle,float>s(0,idx,ps,normal,std::vector<vec3<float,V>>{},std::vector<vec2<float,P>>{});fsytd::allocator<Shape<Triangle,float>>alloc;
 //printf("%d %d\n",sizeof(s.idx_vec)/sizeof(int),sizeof(s.pos)/sizeof(vec3<float,P>));
 Mesh<float>mesh(&s);
-std::vector<int>face;Kd_tree<float>kd(mesh,1.0f,1.0f);int root=kd.build<SplitMode::sah>(0,idx.size()/3);
+std::vector<int>face;Kd_tree<float>kd(mesh,SplitMode::sah,1.0f,1.0f);
 #pragma omp parallel for
 for(int y=0;y<h;y++){
 Independent<float>local=in.clone(y);
@@ -156,7 +156,7 @@ auto tile=cam.get_film()->getTile(bd);
         ray<float>r;
         cam.generateRay(&r,cs);
         //printf("%d\n",mq);
-        sum=sum+render(&r,0,mesh,local);
+        sum=sum+render(&r,0,mesh,local,kd);
         }
         sum=sum/float(spp);
         tile.addSample(f,vec2<float,P>(x,y),sum,1.0f);
