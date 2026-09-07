@@ -2,7 +2,6 @@
 namespace veritas{
 namespace fsytd{
     template<typename T>class allocator{
-        using value_type=T;
         inline static char*start=nullptr;
         inline static char*end=nullptr;
         inline static size_t sz=0;
@@ -40,6 +39,7 @@ namespace fsytd{
         constexpr ~allocator()=default;
         template<typename U>struct rebind{using other=allocator<U>;};
         template<typename U>constexpr allocator(const allocator<U>&){};
+        //constexpr allocator(){release();}
         //n number
         T*allocate(size_t np){
             if(np==0)return nullptr;

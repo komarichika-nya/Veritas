@@ -24,8 +24,8 @@ namespace veritas{
         void build(cameraSample<T>&cs,ray<T>*r,const Pose<T>&pos,const vec3<T,V>&dir)const{
             if(rds>T(0)){T dx,dy;sp(&dx,&dy,cs);T lx=dx*rds,ly=dy*rds;cs.lx=lx;cs.ly=ly;
             assert(lx*lx+ly*ly<=rds*rds+1e-3f);
-            vec3<T,V>pt=pos.p+pos.r*lx+pos.u*ly;
-            vec3<T,V>ed=pos.p+dir*(dis/dot(pos.f,dir));
+            vec3<T,P>pt=pos.p+vec3<T,P>(pos.r*lx)+vec3<T,P>(pos.u*ly);
+            vec3<T,P>ed=pos.p+vec3<T,P>(dir*(dis/dot(pos.f,dir)));
             r->o=pt;r->d=nor(ed-pt);}else r->o=pos.p,r->d=dir;
         }
         void sp(T*dx,T*dy,cameraSample<T>&cs)const{

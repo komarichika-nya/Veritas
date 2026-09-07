@@ -25,7 +25,7 @@ namespace veritas{
         vec3<T,V>dnu,dnv;
         int face_idx=0;
         vec2<T,P>du,dv;
-        bool flip=0;T t;
+        bool flip=0;T t=fsytd::lim<T>::max();
         struct{vec3<T,V>n;vec3<T,V>dpu,dpv;vec3<T,V>dnu,dnv;}shading;
         surface()=default;
         surface(const vec3<T,P>&pos,const vec3<T,P>&bary,const vec3<T,V>&n,const vec2<T,P>&uv,const vec3<T,V>&wo,const vec3<T,V>&dpu,const vec3<T,V>&dpv,const vec3<T,V>&dnu,const vec3<T,V>&dnv,const vec2<T,P>&du,const vec2<T,P>&dv,int face_idx,bool flip):

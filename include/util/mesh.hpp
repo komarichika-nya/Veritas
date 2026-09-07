@@ -47,7 +47,7 @@ namespace veritas{
             if(mesh->normal){vec3<T,V>n0=mesh->normal[id[0]],n1=mesh->normal[id[1]],n2=mesh->normal[id[2]];
             ns=nor(n0*(T(1)-u-v)+n1*u+n2*v);if(mesh->is_reverse)ns=-ns;if(dot(ng,ns)<T(0))ng=-ng;}
             bool back=dot(ng,r->d)>T(0);if(back)ng=-ng,ns=-ns;
-            s.n=ng;s.pos=r->o+r->d*t;s.bary=vec3<T,P>(T(1-u-v),u,v);s.shading.n=ns;s.face_idx=tri_idx;s.flip=back;s.wo=-nor(r->d);s.t=t;
+            s.n=ng;s.pos=r->o+vec3<T,P>(r->d*t);s.bary=vec3<T,P>(T(1-u-v),u,v);s.shading.n=ns;s.face_idx=tri_idx;s.flip=back;s.wo=-nor(r->d);s.t=t;
             if(mesh->uv)s.uv=(T(1)-u-v)*mesh->uv[id[0]]+u*mesh->uv[id[1]]+v*mesh->uv[id[2]];
             //dpu,dpv,dnu,dnv
             return s;

@@ -10,15 +10,17 @@ namespace veritas{
     template<typename T>struct vec_type<T,4>{T x,y,z,w;};
     template<typename T,typename tag,int N>
     struct vec:vec_type<T,N>{
-        vec()=default;
+        vec()=default; 
         vec(T x,T y)requires(N==2):vec_type<T,2>{x,y}{};
         vec(T x,T y,T z)requires(N==3):vec_type<T,3>{x,y,z}{};
+        
         template<typename tg>
-        vec(const vec<T,tg,N>&v){int x;for(x=0;x<N;x++)(*this)[x]=v[x];}
+        explicit vec(const vec<T,tg,N>&v){int x;for(x=0;x<N;x++)(*this)[x]=v[x];}
+
         T&operator[](int x){return(&this->x)[x];}
         const T&operator[](int x)const{return(&this->x)[x];}
         vec<T,tag,N>operator-()const{int x;vec<T,tag,N>ans;for(x=0;x<N;x++)ans[x]=-(*this)[x];return ans;}
-        vec<T,tag,N>&operator=(const vec<T,tag,N>&v){int x;for(x=0;x<N;x++)(*this)[x]=v[x];return *this;}      
+        //vec<T,tag,N>&operator=(const vec<T,tag,N>&v){int x;for(x=0;x<N;x++)(*this)[x]=v[x];return *this;}      
     #define VEC(op)\
         template<typename U>\
         auto operator op (U s)const{vec<decltype(this->x op s),tag,N>ans;int x;for(x=0;x<N;x++)ans[x]=(&this->x)[x] op s;return ans;}
@@ -28,7 +30,10 @@ namespace veritas{
         vec<T,tag2,N>operator op (const vec<T,tag1,N>&v)const{vec<T,tag2,N>ans;int x;for(x=0;x<N;x++)ans[x]=(&this->x)[x] op v[x];return ans;}
         VEC_OP(+,tag,tag);VEC_OP(-,V,V);
     #undef VEC_OP
-        bool operator==(const vec<T,tag,N>&a)const{bool ck=1;int x;for(x=0;x<N;x++)if((&this->x)[x]!=a[x])ck=0;return ck;}
+        template<typename tag1>
+        requires std::is_same_v<tag,P>&&std::is_same_v<tag1,P>
+        vec<T,V,N>operator-(const vec<T,tag1,N>&v)const{vec<T,V,N>ans;int x;for(x=0;x<N;x++)ans[x]=(*this)[x]-v[x];return ans;}
+        bool operator==(const vec<T,tag,N>&a)const{bool ck=1;int x;for(x=0;x<N;x++)if((*this)[x]!=a[x])ck=0;return ck;}
     //HD bool same(const vec<T,tag,N>&a,const vec<T,tag,N>&b)const;
     };
     template<typename T,typename tag,int N,typename U>

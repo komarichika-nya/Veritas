@@ -13,10 +13,11 @@ namespace fsytd{
     #define IMIN(T) static_cast<T>(-IMAX(T)-1)
 
     #define FLT_MAX_VAL 3.40282347e+38f
-    #define FLT_MIN_VAL 1.17549435e-38f
+    #define FLT_MIN_VAL -3.40282347e+38f 
     #define FLT_EPS_VAL 1.19209290e-7f
     #define DBL_MAX_VAL 1.7976931348623157e+308
-    #define DBL_MIN_VAL 2.2250738585072014e-308
+    #define DBL_MIN_VAL -1.7976931348623157e+308
+    //#define DBL_MIN_VAL 2.2250738585072014e-308
     #define DBL_EPS_VAL 2.2204460492503131e-16
     template<typename T>struct lim;
     #define DEF_INT_LIM(T)\
