@@ -58,6 +58,7 @@ Spectrum<float>render(ray<float>*r,int dep,Mesh<float>&mesh,Independent<float>&l
     bool hit1=0;float mn=1e30f;float h1=1e30f,t=1e30f,h2=hit2(r);int tp=-1;
     surface<float>sur;
     kd.ask(kd.root,r,sur);
+    //printf("sur.t:%.6f\n",sur.t);
     if(sur.t!=fsytd::lim<float>::max())h1=sur.t;
             //printf("h1:%.10f h2:%.10f tp:%.10f\n",h1,h2,tp);
             //exit(0);
@@ -70,7 +71,7 @@ Spectrum<float>render(ray<float>*r,int dep,Mesh<float>&mesh,Independent<float>&l
             }  
             vec3<float,P>p=r->o+vec3<float,P>(r->d*t);Spectrum<float>rho;vec3<float,V>n;vec3<float,V>ns;
             if(tp==0){
-                printf("1\n");
+                //printf("1\n");
                 n=sur.n;ns=sur.shading.n;
                 //printf("ng:%.6f %.6f %.6f ns:%.6f %.6f %.6f\n",n.x,n.y,n.z,ns.x,ns.y,ns.z);
                 rho=Spectrum<float>(0.7,0.7,0.7);
@@ -111,7 +112,7 @@ Spectrum<float>render(ray<float>*r,int dep,Mesh<float>&mesh,Independent<float>&l
     //return Spectrum<float>::lerp(Spectrum<float>(1,1,1),Spectrum<float>(0.3,0.5,0.7),u);
 //}
 int main(){
-int spp=1;
+int spp=1024;
 cam.get_pos().mv(vec3<float,P>(0,5,20));
 cam.get_pos()=cam.get_pos().look(cam.get_pos().p,vec3<float,P>(0,6,0),vec3<float,V>(0,1,0));
 FILE*p=freopen("a.in","r",stdin);
@@ -125,17 +126,20 @@ vec3<float,P>lo(1e30f,1e30f,1e30f);vec3<float,P>hi(-1e30f,-1e30f,-1e30f);
 for(auto&v:ps){lo.x=fsytd::min(lo.x,v.x);lo.y=fsytd::min(lo.y,v.y);lo.z=fsytd::min(lo.z,v.z);
 hi.x=fsytd::max(v.x,hi.x);hi.y=fsytd::max(v.y,hi.y);hi.z=fsytd::max(v.z,hi.z);}
 
-printf("bbox (%.4f %.4f %.4f) - (%.4f %.4f %.4f)\n",lo.x,lo.y,lo.z,hi.x,hi.y,hi.z);
+//printf("bbox (%.4f %.4f %.4f) - (%.4f %.4f %.4f)\n",lo.x,lo.y,lo.z,hi.x,hi.y,hi.z);
 float ext=std::max({hi.x-lo.x,hi.y-lo.y,hi.z-lo.z});
 float scale=12.0f/ext;
 vec3<float,P>c1((hi.x+lo.x)*0.5f,lo.y,(hi.z+lo.z)*0.5f);
 for(auto&v:ps){v.x=(v.x-c1.x)*scale;v.y=(v.y-c1.y)*scale;v.z=(v.z-c1.z)*scale;}
 fclose(p);
-printf("%d %d %d\n",ps.size(),tri_idx.size(),idx.size());// 66 66 96
+//printf("%d %d %d\n",ps.size(),tri_idx.size(),idx.size());// 66 66 96
 Shape<Triangle,float>s(0,idx,ps,normal,std::vector<vec3<float,V>>{},std::vector<vec2<float,P>>{});fsytd::allocator<Shape<Triangle,float>>alloc;
 //printf("%d %d\n",sizeof(s.idx_vec)/sizeof(int),sizeof(s.pos)/sizeof(vec3<float,P>));
+//printf("%d\n",s.num_vec);
 Mesh<float>mesh(&s);
 std::vector<int>face;Kd_tree<float>kd(mesh,SplitMode::sah,1.0f,1.0f);
+//printf("%d %d\n\n",kd.root,kd.idx.size());
+//for(auto x:kd.idx)printf("%d\n",x);
 #pragma omp parallel for
 for(int y=0;y<h;y++){
 Independent<float>local=in.clone(y);

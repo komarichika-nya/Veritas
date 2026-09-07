@@ -52,10 +52,12 @@ namespace veritas{
                 std::shared_lock lock(s.mutex);
                 if(auto it=s.cache.find(br);it!=s.cache.end())return it->second.get();
             }
-            {   fsytd::unique_ptr<T[],Deleter<T>>p=make(data,n);
+            {   //fsytd::unique_ptr<T[],Deleter<T>>p=make(data,n);
                 std::unique_lock lock(s.mutex);
+                
+                fsytd::unique_ptr<T[],Deleter<T>>p=make(data,n);
                 if(auto it=s.cache.find(br);it!=s.cache.end())return it->second.get();
-                auto[it1,_]=s.cache.emplace(std::move(Buffer<T>(p.get(),n)),std::move(p));
+                auto[it1,_]=s.cache.emplace(std::move(br),std::move(p));
             //printf("it1->ptr:%p\n len(it1->sz):%d\n",it1->ptr,it1->sz);
                 return it1->second.get();
             }
@@ -97,8 +99,9 @@ namespace veritas{
         constexpr Shape(bool is_reverse,const vector<int>&idx_vec,const vector<vec3<T,P>>&pos,
             const vector<vec3<T,V>>&normal,const vector<vec3<T,V>>&tangent,const vector<vec2<T,P>>&uv):is_reverse(is_reverse),num_vec(pos.size()),num_idx(idx_vec.size()/3){
             if(!idx_vec.empty())this->idx_vec=BufferCache<int>::look_or_add(idx_vec.data(),idx_vec.size());
-            //printf("%d %d %d\n",idx_vec[0],idx_vec[1],idx_vec[2]);
+            //for(int x=0;x<idx_vec.size();x++)printf("%d\n",this->idx_vec[x]);
             if(!pos.empty())this->pos=BufferCache<vec3<T,P>>::look_or_add(pos.data(),pos.size()); 
+            //for(int x=0;x<pos.size();x++)printf("%.6f %.6f %.6f\n",this->pos[x].x,this->pos[x].y,this->pos[x].z);
             if(!normal.empty())this->normal=BufferCache<vec3<T,V>>::look_or_add(normal.data(),normal.size());
             if(!tangent.empty())this->tangent=BufferCache<vec3<T,V>>::look_or_add(tangent.data(),tangent.size());
             if(!uv.empty())this->uv=BufferCache<vec2<T,P>>::look_or_add(uv.data(),uv.size());

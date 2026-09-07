@@ -70,8 +70,12 @@ namespace veritas{
         void mergeTile(Tile<Type>&t){
             std::lock_guard<std::mutex>lock(mergeMutex);
             int x,y,rw=t.sampleBound.mx.x-t.sampleBound.mn.x+1,rh=t.sampleBound.mx.y-t.sampleBound.mn.y+1;
-            for(y=t.sampleBound.mn.y;y<=t.sampleBound.mx.y;y++){
-                for(x=t.sampleBound.mn.x;x<=t.sampleBound.mx.x;x++){
+            //sampleBound is grown by the filter radius, so it overhangs the film on
+            //every side; clamp or the merge reads/writes outside pixel[].
+            int y0=fsytd::max(t.sampleBound.mn.y,0),y1=fsytd::min(t.sampleBound.mx.y,full.y-1);
+            int x0=fsytd::max(t.sampleBound.mn.x,0),x1=fsytd::min(t.sampleBound.mx.x,full.x-1);
+            for(y=y0;y<=y1;y++){
+                for(x=x0;x<=x1;x++){
                     int gb=y*full.x+x,lcp=(y-t.sampleBound.mn.y)*rw+(x-t.sampleBound.mn.x);
                     //assert(lcp>=0&&lcp<=t.sampleBound.mx.y-t.sampleBound.mn.y+1);
                     pixel[gb].rgb[0]+=t.pixel[lcp].rgb[0];
