@@ -1,6 +1,7 @@
 #pragma once
 #include<cassert>
 #include"conf/conf.hpp"
+//#include"conf/array.hpp"
 namespace veritas{
     template<typename T>
     struct RGB{

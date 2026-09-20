@@ -39,5 +39,7 @@ namespace veritas{
             mat4<T>m=mat4<T>::unit();m[0][0]=co;m[0][1]=-si;m[1][0]=si;m[1][1]=co;
             return Transform(m,minv);
         }
+        vec3<T,P>operator()(const vec3<T,P>&p)const{return m*p;}
+        vec3<T,P>applyInv(const vec3<T,P>&p)const{return minv*p;}
     };
 }//namespace veritas

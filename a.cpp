@@ -33,7 +33,7 @@ std::vector<int>idx,tri_idx;
 std::vector<vec3<float,P>>ps;
 std::vector<vec3<float,V>>normal;
 Projective<float,Box<float>,DOF<float>>cam(pos,lens,sh,film,w,h,45.0f);
-vec3<float,P>sun(0,20,0);vec3<float,V>e1(4,15,2);vec3<float,V>e2(0,15,4);Spectrum<float>sc(10,10,10);
+vec3<float,P>sun(0,20,0);vec3<float,V>e1(4,15,2);vec3<float,V>e2(0,15,4);Spectrum<float>sc(1000,1000,1000);
 vec3<float,V>sp(const vec3<float,V>&n,Independent<float>&s){
     float u=s.get1d(),v=s.get1d();float phi=2.0*3.1415926535*u;
     float r=sqrt(v);assert(!isnan(r));float x=cos(phi)*r,z=sin(phi)*r,y=sqrt(std::max(0.0f,1.0f-v));vec3<float,V>u1;
@@ -112,7 +112,7 @@ Spectrum<float>render(ray<float>*r,int dep,Mesh<float>&mesh,Independent<float>&l
     //return Spectrum<float>::lerp(Spectrum<float>(1,1,1),Spectrum<float>(0.3,0.5,0.7),u);
 //}
 int main(){
-int spp=1024;
+int spp=10;
 cam.get_pos().mv(vec3<float,P>(0,5,20));
 cam.get_pos()=cam.get_pos().look(cam.get_pos().p,vec3<float,P>(0,6,0),vec3<float,V>(0,1,0));
 FILE*p=freopen("a.in","r",stdin);

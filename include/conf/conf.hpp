@@ -53,6 +53,10 @@ namespace veritas{
 
         //reflect function
         template<typename T>vec3<T,V>reflect(const vec3<T,V>&wi,const vec3<T,V>&n){return wi-T(2)*dot(wi,n)*n;} 
-
+        //calculate the distance square between two points.
+        template<typename T>T dist(const vec3<T,P>&a,const vec3<T,P>&b){
+            T x1=a.x-b.x,y1=a.y-b.y,z1=a.z-b.z;
+            return x1*x1+y1*y1+z1*z1;
+        }
     }//namespace fsytd
 }//namespace veritas
