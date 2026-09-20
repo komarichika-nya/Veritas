@@ -1,6 +1,6 @@
 #pragma once
 #include"conf/conf.hpp"
-#include"conf/lim.hpp"
+#include"fsytd/lim.hpp"
 #include"core/vec.hpp"
 namespace veritas{
     template<typename T,int N>struct bound_type;

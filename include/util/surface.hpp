@@ -2,7 +2,7 @@
 #include<cassert>
 #include"conf/conf.hpp"
 #include"core/vec.hpp"
-#include"conf/lim.hpp"
+#include"fsytd/lim.hpp"
 namespace veritas{
     template<typename tp,typename T>class Interaction{
     public:

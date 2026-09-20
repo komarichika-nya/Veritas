@@ -2,13 +2,13 @@
 #pragma once
 #include<vector>
 #include<cstddef>
-#include"conf/optional.hpp"
+#include"fsytd/optional.hpp"
 #include"conf/conf.hpp"
-#include"conf/span.hpp"
+#include"fsytd/span.hpp"
 #include"util/shape.hpp"
 #include"core/bound.hpp"
 #include"core/vec.hpp"
-#include"conf/allocator.hpp"
+#include"fsytd/allocator.hpp"
 #include"util/mesh.hpp"
 #include"util/shape.hpp"
 namespace veritas{

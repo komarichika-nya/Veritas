@@ -3,8 +3,8 @@
 #include"conf/conf.hpp"
 #include"core/vec.hpp"
 #include"core/ray.hpp"
-#include"conf/lim.hpp"
-#include"conf/optional.hpp"
+#include"fsytd/lim.hpp"
+#include"fsytd/optional.hpp"
 namespace veritas{
     template<typename T>class Transform{
     public:mat4<T>m,minv;
@@ -13,8 +13,9 @@ namespace veritas{
             auto pd=mat4<T>::inv(m);if(pd.has())minv=*pd;
             else{int x,y;for(x=0;x<4;x++)for(y=0;y<4;y++)minv[x][y]=veritas::fsytd::lim<float>::max();}
         }
+
         Transform(const mat<T,4>&m,const mat<T,4>&minv):m(m),minv(minv){}
-        Transform mv(const vec3<T,P>&p){
+        static Transform mv(const vec3<T,P>&p){
             mat4<T>m=mat4<T>::unit();m[0][3]=p.x;m[1][3]=p.y;m[2][3]=p.z;
             mat4<T>minv=mat4<T>::unit();minv[0][3]=-p.x;minv[1][3]=-p.y;minv[2][3]=-p.z;
             return Transform(m,minv);

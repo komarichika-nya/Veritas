@@ -1,7 +1,7 @@
 #pragma once
 #include<cmath>
 #include"conf/conf.hpp"
-#include"conf/lim.hpp"
+#include"fsytd/lim.hpp"
 namespace veritas{
     struct P{};struct V{};
     template<typename T,int N>struct vec_type;

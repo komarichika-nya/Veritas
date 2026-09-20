@@ -9,8 +9,8 @@
 //#include<cuda_runtime.h>
 #include"conf/conf.hpp"
 #include"core/vec.hpp"
-#include"conf/ptr.hpp"
-#include"conf/allocator.hpp"
+#include"fsytd/ptr.hpp"
+#include"fsytd/allocator.hpp"
 #include"util/transform.hpp"
 namespace veritas{
     using std::vector;

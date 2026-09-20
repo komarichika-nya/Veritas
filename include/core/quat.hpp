@@ -2,6 +2,8 @@
 #include"core/vec.hpp"
 #include"core/mat.hpp"
 #include"conf/conf.hpp"
+#include"fsytd/lim.hpp"
+#include"fsytd/math_utils.hpp"
 namespace veritas{
     template<typename T>struct mat34;
     template<typename T>struct quat{

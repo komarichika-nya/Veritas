@@ -2,12 +2,12 @@
 #include"core/vec.hpp"
 #include"core/quat.hpp"
 #include"conf/conf.hpp"
-#include"conf/optional.hpp"
+#include"fsytd/optional.hpp"
 namespace veritas{
     template<typename T>struct quat;
     template<typename T>struct mat34{
         T mat[3][4];
-        mat34<T>unit(){mat34<T>v;v.mat[0][0]=v.mat[1][1]=v.mat[2][2]=1;return v;}
+        static mat34<T>unit(){mat34<T>v;v.mat[0][0]=v.mat[1][1]=v.mat[2][2]=1;return v;}
         mat34<T>mv(const vec3<T,V>&v){mat34<T>m;m.mat[0][3]=v.x;m.mat[1][3]=v.y;m.mat[2][3]=v.z;return m;}
         mat34<T>scale(const vec3<T,V>&v){mat34<T>m;m.mat[0][0]=v.x;m.mat[1][1]=v.y;m.mat[2][2]=v.z;return m;}
         mat34<T>rot(const quat<T>&b){mat34<T>v;quat a=quat<T>::norm(b);

@@ -1,4 +1,5 @@
 #pragma once
+#include"fsytd/forward.hpp"
 namespace veritas{
 namespace fsytd{
     template<typename T>class allocator{
@@ -64,7 +65,7 @@ namespace fsytd{
             start=end=nullptr;sz=0;for(auto&h:list)h=nullptr;
         }
         template<typename U,typename...tp>
-        void construct(U*p,tp&...args){::new(static_cast<void*>(p))U(fsytd::forward_<tp>(args)...);}
+        void construct(U*p,tp&...args){::new(static_cast<void*>(p))U(veritas::fsytd::forward_<tp>(args)...);}
         template<typename U>
         void destory(U*p){p->~U();}
     };
