@@ -7,7 +7,7 @@ namespace veritas{
     template<typename T>struct quat;
     template<typename T>struct mat34{
         T mat[3][4];
-        static mat34<T>unit(){mat34<T>v;v.mat[0][0]=v.mat[1][1]=v.mat[2][2]=1;return v;}
+        mat34<T>unit(){mat34<T>v;v.mat[0][0]=v.mat[1][1]=v.mat[2][2]=1;return v;}
         mat34<T>mv(const vec3<T,V>&v){mat34<T>m;m.mat[0][3]=v.x;m.mat[1][3]=v.y;m.mat[2][3]=v.z;return m;}
         mat34<T>scale(const vec3<T,V>&v){mat34<T>m;m.mat[0][0]=v.x;m.mat[1][1]=v.y;m.mat[2][2]=v.z;return m;}
         mat34<T>rot(const quat<T>&b){mat34<T>v;quat a=quat<T>::norm(b);
@@ -91,7 +91,8 @@ namespace veritas{
             return a-b+c-d;
         }
         mat<T,N>operator+(const mat<T,N>&v)const{mat<T,N>a;int x,y;for(x=0;x<N;x++)for(y=0;y<N;y++)a.m[x][y]=m[x][y]+v.m[x][y];return a;}
-        vec<T,V,N>operator*(const vec<T,V,N>&v)const{vec<T,V,N>a;int x,y;for(x=0;x<N;x++){a[x]=T(0);for(y=0;y<N;y++)a[x]+=m[x][y]*v[y];}return a;}
+        template<typename tag>
+        vec<T,tag,N>operator*(const vec<T,tag,N>&v)const{vec<T,tag,N>a;int x,y;for(x=0;x<N;x++){a[x]=T(0);for(y=0;y<N;y++)a[x]+=m[x][y]*v[y];}return a;}
         mat<T,N>operator*(const mat<T,N>&v)const{mat<T,N>a;int x,y,z;for(x=0;x<N;x++)for(y=0;y<N;y++)for(z=0;z<N;z++)a.m[x][y]+=m[x][z]*v.m[z][y];return a;}
         mat<T,N>operator*(T s)const{mat<T,N>a;int x,y;for(x=0;x<N;x++)for(y=0;y<N;y++)a.m[x][y]=m[x][y]*s;return a;}
         mat<T,N>operator/(T s)const{mat<T,N>a;if(s==T(0))return mat<T,N>::zero();T s1=T(1)/s;int x,y;for(x=0;x<N;x++)for(y=0;y<N;y++)a.m[x][y]=m[x][y]*s1;return a;}

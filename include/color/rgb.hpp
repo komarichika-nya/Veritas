@@ -5,12 +5,11 @@
 namespace veritas{
     template<typename T>
     struct RGB{
-        T c[3];
+        T c[3]{};
         RGB()=default;
         RGB(T r,T g,T b){c[0]=r,c[1]=g,c[2]=b;};
         T&operator[](int x){return c[x];}
         const T&operator[](int x)const{return c[x];}
-        RGB<T>operator*(T v)const{return{c[0]*v,c[1]*v,c[2]*v};}
         RGB<T>operator/(T v)const{assert(v>0);return{c[0]/v,c[1]/v,c[2]/v};}
         bool is_black()const{return c[0]==T(0)&&c[1]==T(0)&&c[2]==T(0);}
         bool is_white()const{return c[0]==T(1)&&c[1]==T(1)&&c[2]==T(1);}
@@ -22,6 +21,10 @@ namespace veritas{
     HD RGB operator op (const RGB&a)const{return{c[0] op a.c[0],c[1] op a.c[1],c[2] op a.c[2]};}
     RGB_OP(+);RGB_OP(-);RGB_OP(*);RGB_OP(/)
     };
+    template<typename T>
+    RGB<T>operator*(const RGB<T>&v,T s){return RGB<T>{v[0]*s,v[1]*s,v[2]*s};}
+    template<typename T>
+    RGB<T>operator*(T s,const RGB<T>&v){return v*s;}
 #if defined(RGB_MOD)||!defined(SPECTRUM_MOD)
 #define Spectrum RGB
 #endif

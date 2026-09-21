@@ -43,7 +43,7 @@ namespace veritas{
             vec3<T,V>tv=r->o-p0;T u=dot(tv,pv)*inv;if(u<T(0)||u>T(1))return{};
             vec3<T,V>qv=cs(tv,e1);T v=dot(r->d,qv)*inv;if(v<T(0)||u+v>T(1))return{};
             T t=dot(e2,qv)*inv;if(t<r->tmn||t>r->tmx)return{};surface<T>s;
-            r->tmx=veritas::fsytd::min(r->tmx,t);r->tmn=veritas::fsytd::max(r->tmn,t);
+            r->tmx=veritas::fsytd::min(r->tmn,t);
             vec3<T,V>ng=nor(cs(e1,e2));if(mesh->is_reverse)ng=-ng;vec3<T,V>ns=ng;
             if(mesh->normal){vec3<T,V>n0=mesh->normal[id[0]],n1=mesh->normal[id[1]],n2=mesh->normal[id[2]];
             ns=nor(n0*(T(1)-u-v)+n1*u+n2*v);if(mesh->is_reverse)ns=-ns;if(dot(ng,ns)<T(0))ng=-ng;}

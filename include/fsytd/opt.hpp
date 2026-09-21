@@ -17,8 +17,8 @@ namespace veritas{
         //reflect function
         template<typename T>vec3<T,V>reflect(const vec3<T,V>&wi,const vec3<T,V>&n){return wi-T(2)*dot(wi,n)*n;} 
         //calculate the distance square between two points.
-        template<typename T>bool occluded(const ray<T>&r,T tmn,T tmx,Kd_tree<T>&kd){
-            surface<T>sur;kd.ask(kd.root,r,sur);return sur.t<tmx&&sur.t>tmn;
+        template<typename T>bool occluded(ray<T>&r,T tmn,T tmx,Kd_tree<T>&kd){
+            r.tmn=tmn;r.tmx=tmx;surface<T>sur;kd.ask(kd.root,&r,sur);return sur.t<tmx&&sur.t>tmn;
         }        
     }//namespace fsytd
 }//namespace veritas

@@ -13,7 +13,7 @@ namespace veritas{
         vec()=default; 
         vec(T x,T y)requires(N==2):vec_type<T,2>{x,y}{};
         vec(T x,T y,T z)requires(N==3):vec_type<T,3>{x,y,z}{};
-        
+        vec(T x,T y,T z,T w)requires(N==4):vec_type<T,4>{x,y,z,w}{}; 
         template<typename tg>
         explicit vec(const vec<T,tg,N>&v){int x;for(x=0;x<N;x++)(*this)[x]=v[x];}
 

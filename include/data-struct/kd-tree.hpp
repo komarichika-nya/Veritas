@@ -155,7 +155,7 @@ namespace veritas{
             if(node==-1||!check(node,r))return;
             auto s=this->tri->intersect(idx[node],r);
             //printf("node:%d\n ls[node]:%d\n rs[node]:%d\n",node,ls[node],rs[node]);
-            if(s.has()&&s.val().t<sur.t)sur=s.val();
+            if(s.has()&&s.val().t<sur.t)sur=s.val();//printf("ok: sur.pos:%f %f %f s.val:%f %f %f\n",sur.pos.x,sur.pos.y,sur.pos.z,s.val().pos.x,s.val().pos.y,s.val().pos.z);
             ask(ls[node],r,sur);ask(rs[node],r,sur);
         } 
     };
