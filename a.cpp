@@ -37,7 +37,7 @@ Projective<float,Box<float>,DOF<float>>cam(pos,lens,sh,film,w,h,45.0f);
 //sun--light
 vec3<float,P>sun(0,20,0);vec3<float,V>e1(4,15,2);vec3<float,V>e2(0,15,4);Spectrum<float>sc(1000,1000,1000);
 
-Spectrum<float>I(50,50,50);Transform<float>trans;
+Spectrum<float>I(30,30,30);Transform<float>trans;
 PointLight<float>point(I,&trans,1);
 Light<float>light(LightType::Point,&point);
 
@@ -58,11 +58,11 @@ Spectrum<float>render(ray<float>*r,int dep,Mesh<float>&mesh,Independent<float>&l
     bool hit1=0;float mn=1e30f;float h1=1e30f,t=1e30f,h2=hit2(r);int tp=-1;
     surface<float>sur;//fsytd::optional<surface<float>>sur1;
     //printf("%p\n",(void*)&sur);
-    //kd.ask(kd.root,r,sur);
-    for(int x=0;x<idx.size()/3;x++){
-        auto ck=mesh.intersect(x,r);
-        if(ck.has()){surface<float>sur1=ck.val();if(sur1.t>eps&&sur1.t<mn)mn=sur1.t,sur=sur1,hit1=1;}
-    }
+    kd.ask(kd.root,r,sur);
+    //for(int x=0;x<idx.size()/3;x++){
+    //    auto ck=mesh.intersect(x,r);
+    //    if(ck.has()){surface<float>sur1=ck.val();if(sur1.t>eps&&sur1.t<mn)mn=sur1.t,sur=sur1,hit1=1;}
+    //}
     //printf("%p\n",(void*)&sur);
     //printf("%f %f %f\n",sur.pos.x,sur.pos.y,sur.pos.z);
     if(sur.t!=fsytd::lim<float>::max())h1=sur.t;
@@ -70,9 +70,9 @@ Spectrum<float>render(ray<float>*r,int dep,Mesh<float>&mesh,Independent<float>&l
     if(h2>eps&&h2<t){t=h2;tp=1;}
     Spectrum<float>rho,le(0,0,0);
     //L=L_e+\int_{\Omega^+}f_r(\omega_i,\omega_o,h)L_id\omega.
-    if(tp==-1){//ground
+    if(tp==-1){
         float u=float(0.5)*(r->d.y+float(1.0));
-        return rho=Spectrum<float>::lerp(Spectrum<float>(1,1,1),Spectrum<float>(0.3,0.5,0.7),u);
+        return rho=0.2f*Spectrum<float>::lerp(Spectrum<float>(1,1,1),Spectrum<float>(0.3,0.5,0.7),u);
     }  
     vec3<float,P>p=r->o+vec3<float,P>(r->d*t);vec3<float,V>n;vec3<float,V>ns;
     if(tp==0){
@@ -84,7 +84,8 @@ Spectrum<float>render(ray<float>*r,int dep,Mesh<float>&mesh,Independent<float>&l
     }
     if(tp==1){
         n=vec3<float,V>(0,1,0);int ck=(int(floor(p.x))+int(floor(p.z)));
-        return ck&1?Spectrum<float>(0.2,0.2,0.2):Spectrum<float>(0.8,0.8,0.8);
+        rho=ck&1?Spectrum<float>(0.2,0.2,0.2):Spectrum<float>(0.8,0.8,0.8);
+        sur.pos=p;n=vec3<float,V>(0,1,0);
     }
     vec2<float,P>rng(local.get1d(),local.get1d());
     //check visable. spp=1.
@@ -95,7 +96,7 @@ Spectrum<float>render(ray<float>*r,int dep,Mesh<float>&mesh,Independent<float>&l
     auto ctx=light.LiSample(sur,rng);
     //printf("%f %f %f\n",ctx.val().plight.pos.x,ctx.val().plight.pos.y,ctx.val().plight.pos.z);
     Spectrum<float>li(0,0,0);float pdf;vec3<float,V>wi;
-    if(dot(n,r->d)>0)n=-n;if(dot(ns,r->d)>0)ns=-ns;
+    //if(dot(n,r->d)>0)n=-n;if(dot(ns,r->d)>0)ns=-ns;
     if(ctx.has()){
         li=ctx.val().L;wi=ctx.val().wi;pdf=ctx.val().pdf;
         if(dot(wi,n)>0&&dot(wi,ns)>0){
@@ -106,12 +107,12 @@ Spectrum<float>render(ray<float>*r,int dep,Mesh<float>&mesh,Independent<float>&l
     }
     vec3<float,V>dir=nor(sp(n,local));ray<float>nxt;nxt.o=sur.pos+vec3<float,P>(n.x,n.y,n.z)*nxt.tmn,nxt.d=dir;
     d2=render(&nxt,dep+1,mesh,local,kd)*rho;
-    return le+d1;//pointlight pdf=1;
+    return le+d1+d2;//pointlight pdf=1;
 }
 
 
 int main(){
-int spp=100;
+int spp=1024;
 cam.get_pos().mv(vec3<float,P>(0,5,20));
 cam.get_pos()=cam.get_pos().look(cam.get_pos().p,vec3<float,P>(0,6,0),vec3<float,V>(0,1,0));
 FILE*p=freopen("a.in","r",stdin);
