@@ -3,17 +3,9 @@
 #include"core/vec.hpp"
 #include"film/filterSample.hpp"
 namespace veritas{
-    template<typename T>struct filter_traits;
-    template<typename T>class Box;
-    template<typename T>struct filter_traits<Box<T>>{using value_type=T;};
-    template<typename tp>class Filter{
+    template<typename T>class Box{
     public:
-        using T=typename filter_traits<tp>::value_type;
-        tp&self(){return static_cast<tp&>(this);}
-        const tp&self()const{return static_cast<const tp&>(this);}
-    };
-    template<typename T>class Box:public Filter<Box<T>>{
-    public:
+        using value_type=T;
         Box()=default;
         Box(const vec2<T,P>&r):r(r){}
         vec2<T,P>radius()const{return r;}

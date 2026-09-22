@@ -20,10 +20,13 @@
 #include"util/light.hpp"
 #include"fsytd/opt.hpp"
 using namespace veritas;
-const int w=800,h=600;
+int w=800,h=600;
 using std::isnan;
+//Pose
 veritas::Pose<float>pos=veritas::Pose<float>::init();
-DOF<float>lens(20,0.1);
+//Lens
+DOF<float>dof(20,0.1);
+Lens<float>lens(&dof);
 Box<float>f(vec2<float,P>(0.5,0.5));
 bound2<int>b(vec2<int,P>(0,0),vec2<int,P>(w-1,h-1));
 Film<Box<float>>film(vec2<int,P>(w,h),b);
@@ -32,14 +35,14 @@ Independent<float>in;
 std::vector<int>idx,tri_idx;
 std::vector<vec3<float,P>>ps;
 std::vector<vec3<float,V>>normal;
-Projective<float,Box<float>,DOF<float>>cam(pos,lens,sh,film,w,h,45.0f);
-
+Projective<float>pro(pos,lens,sh,w,h,45.0f);
+Camera<float>cam(&pro);
 //sun--light
 vec3<float,P>sun(0,20,0);vec3<float,V>e1(4,15,2);vec3<float,V>e2(0,15,4);Spectrum<float>sc(1000,1000,1000);
 
 Spectrum<float>I(30,30,30);Transform<float>trans;
 PointLight<float>point(I,&trans,1);
-Light<float>light(LightType::Point,&point);
+Light<float>light(&point);
 
 vec3<float,V>sp(const vec3<float,V>&n,Independent<float>&s){
     float u=s.get1d(),v=s.get1d();float phi=2.0*3.1415926535*u;
@@ -112,10 +115,10 @@ Spectrum<float>render(ray<float>*r,int dep,Mesh<float>&mesh,Independent<float>&l
 
 
 int main(){
-int spp=1024;
-cam.get_pos().mv(vec3<float,P>(0,5,20));
-cam.get_pos()=cam.get_pos().look(cam.get_pos().p,vec3<float,P>(0,6,0),vec3<float,V>(0,1,0));
-FILE*p=freopen("a.in","r",stdin);
+int spp=1;
+cam.getPos().mv(vec3<float,P>(0,5,20));
+cam.getPos()=cam.getPos().look(cam.getPos().p,vec3<float,P>(0,6,0),vec3<float,V>(0,1,0));
+FILE*p=freopen("/home/chika/lcp1/a.in","r",stdin);
 assert(p!=nullptr);
 float a,b,c;
 int n,n1;std::cin>>n;
@@ -144,7 +147,7 @@ std::vector<int>face;Kd_tree<float>kd(mesh,SplitMode::sah,1.0f,1.0f);
 for(int y=0;y<h;y++){
 Independent<float>local=in.clone(y);
 bound2<int>bd(vec2<int,P>(0,y),vec2<int,P>(w-1,y));
-auto tile=cam.get_film()->getTile(bd);
+auto tile=film.getTile(bd);
     for(int x=0;x<w;x++){
         local.sp(x,y,y*w+x,100);
         int s;Spectrum<float>sum(0,0,0),sumsp(0,0,0);

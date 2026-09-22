@@ -17,7 +17,6 @@ namespace veritas{
     };
     
     //Light defination
-    enum class LightType:uint8_t{Point,Area};
     template<typename T>class PointLight{
     public:
         PointLight()=default;
@@ -41,33 +40,27 @@ namespace veritas{
     template<typename T>class Light{
     public:
         Light()=default;
-        Light(LightType t,const void*p):type(t),ptr(p){}
-        template<typename F>
-        decltype(auto)visit(F&&f)const{
-            switch(type){
-                case LightType::Point:return f(*static_cast<const PointLight<T>*>(ptr));
-                //I will add, but not now, trust me.
-                //case LightType::Area:return f(*static_cast<const AreaLight<T>*>(ptr));
-            }
-            __builtin_unreachable();
+        template<typename L>Light(const L*p):ptr(p),tag(fsytd::idx_of<L,PointLight<T>>){
+            static_assert(fsytd::idx_of<L,PointLight<T>> >=0,"not a light type");
         }
+        template<typename F>decltype(auto)visit(F&&f)const{return fsytd::dispatch<0,F,PointLight<T>>(tag,ptr,fsytd::forward_<F>(f));}
         Spectrum<T>Phi()const{return visit([&](auto const&l){return l.Phi();});}
         fsytd::optional<liSample<T>>LiSample(const surface<T>&sur,vec2<T,P>u)const{
             return visit([&](auto const&l){return l.LiSample(sur,u);});
         }
     private:
-        LightType type{};
+        int tag=-1;
         const void*ptr=nullptr;
     };
-    template<LightType tag,typename T>struct Light_traits;
-    template<typename T>struct Light_traits<LightType::Point,T>{
-        using type=PointLight<T>;
-        static constexpr bool is_delta=true;
-    };
+    //template<LightType tag,typename T>struct Light_traits;
+    //template<typename T>struct Light_traits<LightType::Point,T>{
+    //    using type=PointLight<T>;
+    //    static constexpr bool is_delta=true;
+    //};
     //template<typename T>struct Light_traits<LightType::Area>{};
-    template<typename T>struct LightScene{
-        std::vector<PointLight<T>>points;
+    //template<typename T>struct LightScene{
+    //    std::vector<PointLight<T>>points;
         //std::vector<AreaLight<T>>areas;
         //std::vector<Light<T>>handles;
-    };
+    //};
 }

@@ -9,26 +9,25 @@
 #include"camera/cameraSample.hpp"
 #include"film/film.hpp"
 namespace veritas{
-    template<typename T>struct camera_traits;
-    template<typename T,typename Filter,typename LensT>class Projective;
-    template<typename T,typename Filter,typename LensT>struct camera_traits<Projective<T,Filter,LensT>>{using value_type=T;};
-    template<typename tp,typename Filter,typename LensT>class Camera{
+    //Type
+    template<typename T>class Projective;
+    template<typename T>class Camera{
     public:
-        using T=camera_traits<tp>::value_type;
-        Camera(Pose<T>&pos,Lens<LensT>&lens,Shut<T>&shut,Film<Filter>&film,int w,int h):pos(pos),lens(lens),shut(shut),film(&film),w(w),h(h){};
-        ~Camera()=default;
-        tp&self(){return static_cast<tp&>(this);}
-        const tp&self()const{return static_cast<tp&>(this);}
-    protected:
-        Pose<T>pos;
-        Lens<LensT>lens;
-        Shut<T>shut;
-        Film<Filter>*film;
-        int w,h;
+        Camera()=default;
+        template<typename C>Camera(C*p):tag(fsytd::idx_of<C,Projective<T>>),ptr(p){static_assert(fsytd::idx_of<C,Projective<T>> >=0,"not a camera type");}
+        template<typename F>decltype(auto)visit(F&&f){return fsytd::dispatch<0,F,Projective<T>>(tag,ptr,fsytd::forward_<F>(f)); }
+        template<typename F>decltype(auto)visit(F&&f)const{return fsytd::dispatch<0,F,Projective<T>>(tag,ptr,fsytd::forward_<F>(f));}
+        void generateRay(ray<T>*r,cameraSample<T>&cs)const{return visit([&](const auto&c){return c.generateRay(r,cs);});}
+        Pose<T>&getPos(){return visit([&](auto&c)->Pose<T>&{return c.getPos();});}
+        const Pose<T>&getPos()const{return visit([&](const auto&c)->Pose<T>&{return c.getPos();});}        
+    private:
+        int tag=-1;
+        void*ptr=nullptr;
     };
-    template<typename T,typename Filter,typename LensT>class Projective:public Camera<Projective<T,Filter,LensT>,Filter,LensT>{
+    template<typename T>class Projective{
     public:
-        Projective(Pose<T>&pos,Lens<LensT>&lens,Shut<T>&shut,Film<Filter>&film,int w,int h,T fov):Camera<Projective<T,Filter,LensT>,Filter,LensT>(pos,lens,shut,film,w,h),fov(fov),hf_h(tan(fov/T(2)*veritas::fsytd::PI<T>/T(180.0))),hf_w(T(w)/T(h)*hf_h){};
+        Projective()=default;
+        Projective(Pose<T>&pos,Lens<T>&lens,Shut<T>&shut,int w,int h,T fov):pos(pos),lens(lens),shut(shut),w(w),h(h),fov(fov),hf_h(tan(fov/T(2)*veritas::fsytd::PI<T>/T(180.0))),hf_w(T(w)/T(h)*hf_h){};
         void generateRay(ray<T>*r,cameraSample<T>&cs)const{
             T fx=cs.px,fy=cs.py;
             T ndcx=(T(2)*fx)/this->w-T(1),ndcy=T(1)-(T(2)*fy)/this->h;
@@ -38,10 +37,12 @@ namespace veritas{
             lens.build(cs,r,pos,dir);
             r->t=this->shut.sample(cs.t);
         }
-        Pose<T>&get_pos(){return this->pos;}
-        const Pose<T>&get_pos()const{return this->pos;}
-        Film<Filter>*get_film()const{return this->film;}
-    protected:
+        Pose<T>&getPos(){return this->pos;}
+        const Pose<T>&getPos()const{return this->pos;}
+        Pose<T>pos;
+        Lens<T>lens;
+        Shut<T>shut;
+        int w,h;
         T hf_h,hf_w,fov;
     };
 }//namespace veritas

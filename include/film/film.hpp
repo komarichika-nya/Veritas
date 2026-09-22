@@ -51,7 +51,7 @@ namespace veritas{
         ~Tile()=default;
     };
     template<typename F>struct Film{
-        using Type=typename F::T;
+        using Type=typename F::value_type;
         std::unique_ptr<Pixel<Type>[]>pixel;
         vec2<int,P>full;
         bound2<int>crop;

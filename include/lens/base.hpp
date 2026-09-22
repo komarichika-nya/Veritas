@@ -5,19 +5,22 @@
 #include"camera/cameraSample.hpp"
 #include"core/ray.hpp"
 #include"camera/pose.hpp"
+#include"fsytd/typelist.hpp"
 namespace veritas{
-    template<typename tp>struct lens_traits;
+    //Type
     template<typename T>class DOF;
-    template<typename T>struct lens_traits<DOF<T>>{using value_type=T;};
-    template<>struct lens_traits<float>{using value_type=float;};
-    template<typename tp>class Lens{
+    template<typename T>class Lens{
     public:
-        using T=typename lens_traits<tp>::value_type;
         Lens()=default;
-        //Lens(cameraSample<T>&cs,ray<T>*r,const Pose<T>&pos){static_cast<tp*>(this)->build(cs,r,pos);}
-        void build(cameraSample<T>&cs,ray<T>*r,const Pose<T>&pos,const vec3<T,V>&dir)const{static_cast<const tp*>(this)->build(cs,r,pos,dir);}
+        template<typename L>Lens(L*p):ptr(p),tag(fsytd::idx_of<L,DOF<T>>){static_assert(fsytd::idx_of<L,DOF<T>> >=0,"not a len type");}
+        template<typename F>decltype(auto)visit(F&&f){return fsytd::dispatch<0,F,DOF<T>>(tag,ptr,fsytd::forward_<F>(f));}
+        template<typename F>decltype(auto)visit(F&&f)const{return fsytd::dispatch<0,F,DOF<T>>(tag,ptr,fsytd::forward_<F>(f));}
+        void build(cameraSample<T>&cs,ray<T>*r,const Pose<T>&pos,const vec3<T,V>&dir)const{return visit([&](auto&l){return l.build(cs,r,pos,dir);});}
+    private:
+        int tag=-1;
+        void*ptr=nullptr;
     };
-    template<typename T>class DOF:public Lens<DOF<T>>{
+    template<typename T>class DOF{
     public:
         T dis,rds;
         DOF(T dis,T rds):dis(dis),rds(rds){}
