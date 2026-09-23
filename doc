@@ -1,0 +1,58 @@
+# Veritas doc
+# veritas is a n offline renderer that requires configuration files to be
+# '.v' extension; blow, I will introduce the fileds used in these configuration files.
+
+# The configuration file format is similar to that of '.conf' files and is easy to configure.
+
+#Header Check: veritas
+#
+#value type: 'string'
+#
+
+# The basic format is:
+
+# [Options]
+# key = value
+
+# Currently supported operations include: Camera, Light, General.
+
+# [General]
+
+# set the image resolution
+# value type: int
+
+# width = 
+
+# height =
+
+# Set the number of samples
+# value type: 'int'
+
+# spp = 
+
+# set rendering mode 
+# value type: 'string', now only 'cpu' supported
+
+# mode = 
+
+# [Camera]
+
+# set Camera type
+# value type: 'string', now only 'Projective' supported
+
+# type = 
+
+# set Camera position 
+# value type: 'float' or 'dobule' , (x,x,x)
+
+# position = 
+
+# set lens type
+# value type: 'string', now only 'dof' supported
+
+# lens = 
+
+# set filter type 
+# value type 'string', now only 'box' supported
+
+# filter = 

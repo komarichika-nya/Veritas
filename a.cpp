@@ -57,7 +57,7 @@ float eps=veritas::fsytd::lim<float>::eps();
 float hit2(const ray<float>*r){if(fabs(r->d.y)>eps)return -r->o.y/r->d.y;return -1e8f;}
 
 Spectrum<float>render(ray<float>*r,int dep,Mesh<float>&mesh,Independent<float>&local,Kd_tree<float>&kd){
-    if(dep>20)return Spectrum<float>(0,0,0);
+    //if(dep>20)return Spectrum<float>(0,0,0);
     bool hit1=0;float mn=1e30f;float h1=1e30f,t=1e30f,h2=hit2(r);int tp=-1;
     surface<float>sur;//fsytd::optional<surface<float>>sur1;
     //printf("%p\n",(void*)&sur);
@@ -108,14 +108,19 @@ Spectrum<float>render(ray<float>*r,int dep,Mesh<float>&mesh,Independent<float>&l
             //else return Spectrum<float>(0.5,0,0);
         }//else return Spectrum<float>(0,0,0.5);
     }
+    Spectrum<float>put=rho;float q=fsytd::min(1.0f,fsytd::max(put[0],fsytd::max(put[1],put[2])));
+    //if(dep>3){
+        if(local.get1d()>q)return le+d1;
+        put=put/q;
+    //}
     vec3<float,V>dir=nor(sp(n,local));ray<float>nxt;nxt.o=sur.pos+vec3<float,P>(n.x,n.y,n.z)*nxt.tmn,nxt.d=dir;
-    d2=render(&nxt,dep+1,mesh,local,kd)*rho;
+    d2=render(&nxt,dep+1,mesh,local,kd)*put;
     return le+d1+d2;//pointlight pdf=1;
 }
 
 
 int main(){
-int spp=1;
+int spp=100;
 cam.getPos().mv(vec3<float,P>(0,5,20));
 cam.getPos()=cam.getPos().look(cam.getPos().p,vec3<float,P>(0,6,0),vec3<float,V>(0,1,0));
 FILE*p=freopen("/home/chika/lcp1/a.in","r",stdin);
