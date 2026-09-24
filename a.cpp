@@ -19,26 +19,10 @@
 #include"data-struct/kd-tree.hpp"
 #include"util/light.hpp"
 #include"fsytd/opt.hpp"
+#include"util/scene.hpp"
+#include"model/loader.hpp"
 using namespace veritas;
-int w=800,h=600;
 using std::isnan;
-//Pose
-veritas::Pose<float>pos=veritas::Pose<float>::init();
-//Lens
-DOF<float>dof(20,0.1);
-Lens<float>lens(&dof);
-Box<float>f(vec2<float,P>(0.5,0.5));
-bound2<int>b(vec2<int,P>(0,0),vec2<int,P>(w-1,h-1));
-Film<Box<float>>film(vec2<int,P>(w,h),b);
-Shut<float>sh(0,0);
-Independent<float>in;
-std::vector<int>idx,tri_idx;
-std::vector<vec3<float,P>>ps;
-std::vector<vec3<float,V>>normal;
-Projective<float>pro(pos,lens,sh,w,h,45.0f);
-Camera<float>cam(&pro);
-//sun--light
-vec3<float,P>sun(0,20,0);vec3<float,V>e1(4,15,2);vec3<float,V>e2(0,15,4);Spectrum<float>sc(1000,1000,1000);
 
 Spectrum<float>I(30,30,30);Transform<float>trans;
 PointLight<float>point(I,&trans,1);
@@ -56,7 +40,7 @@ float eps=veritas::fsytd::lim<float>::eps();
 
 float hit2(const ray<float>*r){if(fabs(r->d.y)>eps)return -r->o.y/r->d.y;return -1e8f;}
 
-Spectrum<float>render(ray<float>*r,int dep,Mesh<float>&mesh,Independent<float>&local,Kd_tree<float>&kd){
+Spectrum<float>render(ray<float>*r,int dep,Independent<float>&local,Kd_tree<float>&kd){
     //if(dep>20)return Spectrum<float>(0,0,0);
     bool hit1=0;float mn=1e30f;float h1=1e30f,t=1e30f,h2=hit2(r);int tp=-1;
     surface<float>sur;//fsytd::optional<surface<float>>sur1;
@@ -109,45 +93,42 @@ Spectrum<float>render(ray<float>*r,int dep,Mesh<float>&mesh,Independent<float>&l
         }//else return Spectrum<float>(0,0,0.5);
     }
     Spectrum<float>put=rho;float q=fsytd::min(1.0f,fsytd::max(put[0],fsytd::max(put[1],put[2])));
-    //if(dep>3){
+    if(dep>3){
         if(local.get1d()>q)return le+d1;
         put=put/q;
-    //}
+    }
     vec3<float,V>dir=nor(sp(n,local));ray<float>nxt;nxt.o=sur.pos+vec3<float,P>(n.x,n.y,n.z)*nxt.tmn,nxt.d=dir;
-    d2=render(&nxt,dep+1,mesh,local,kd)*put;
+    d2=render(&nxt,dep+1,local,kd)*put;
     return le+d1+d2;//pointlight pdf=1;
 }
 
 
 int main(){
-int spp=100;
+
+Scene<float>scene=fsytd::reader<float>("/home/chika/lcp1/build/conf");
+int spp=scene.spp,w=scene.w,h=scene.h;
+
+printf("%d %d %d\n",spp,w,h);
+
+veritas::Pose<float>pos=veritas::Pose<float>::init();
+//Lens
+DOF<float>dof(20,0.1);
+Lens<float>lens(&dof);
+
+Box<float>f(vec2<float,P>(0.5,0.5));
+bound2<int>b(vec2<int,P>(0,0),vec2<int,P>(w-1,h-1));
+Film<Box<float>>film(vec2<int,P>(w,h),b);
+Shut<float>sh(0,0);
+Independent<float>in;
+Projective<float>pro(pos,lens,sh,w,h,45.0f);
+Camera<float>cam(&pro);
+
+
 cam.getPos().mv(vec3<float,P>(0,5,20));
 cam.getPos()=cam.getPos().look(cam.getPos().p,vec3<float,P>(0,6,0),vec3<float,V>(0,1,0));
-FILE*p=freopen("/home/chika/lcp1/a.in","r",stdin);
-assert(p!=nullptr);
-float a,b,c;
-int n,n1;std::cin>>n;
-int x;for(x=0;x<n;x++)std::cin>>a>>b>>c,ps.push_back({a,b,c}),tri_idx.push_back(x);
-int fuc;std::cin>>n1;for(x=0;x<n1;x++)std::cin>>fuc,idx.push_back(fuc);
-int nr;std::cin>>nr;for(x=0;x<nr;x++)std::cin>>a>>b>>c,normal.push_back({a,b,c});
-vec3<float,P>lo(1e30f,1e30f,1e30f);vec3<float,P>hi(-1e30f,-1e30f,-1e30f);
-for(auto&v:ps){lo.x=fsytd::min(lo.x,v.x);lo.y=fsytd::min(lo.y,v.y);lo.z=fsytd::min(lo.z,v.z);
-hi.x=fsytd::max(v.x,hi.x);hi.y=fsytd::max(v.y,hi.y);hi.z=fsytd::max(v.z,hi.z);}
 
-printf("bbox (%.4f %.4f %.4f) - (%.4f %.4f %.4f)\n",lo.x,lo.y,lo.z,hi.x,hi.y,hi.z);
-float ext=std::max({hi.x-lo.x,hi.y-lo.y,hi.z-lo.z});
-float scale=12.0f/ext;
-vec3<float,P>c1((hi.x+lo.x)*0.5f,lo.y,(hi.z+lo.z)*0.5f);
-for(auto&v:ps){v.x=(v.x-c1.x)*scale;v.y=(v.y-c1.y)*scale;v.z=(v.z-c1.z)*scale;}
-fclose(p);
-//printf("%d %d %d\n",ps.size(),tri_idx.size(),idx.size());// 66 66 96
-Shape<Triangle,float>s(0,idx,ps,normal,std::vector<vec3<float,V>>{},std::vector<vec2<float,P>>{});fsytd::allocator<Shape<Triangle,float>>alloc;
-//printf("%d %d\n",sizeof(s.idx_vec)/sizeof(int),sizeof(s.pos)/sizeof(vec3<float,P>));
-//printf("%d\n",s.num_vec);
-Mesh<float>mesh(&s);
-std::vector<int>face;Kd_tree<float>kd(mesh,SplitMode::sah,1.0f,1.0f);
-//printf("%d %d\n\n",kd.root,kd.idx.size());
-//for(auto x:kd.idx)printf("%d\n",x);
+Kd_tree<float>kd(scene.mesh,SplitMode::sah,1.0f,1.0f);
+
 #pragma omp parallel for
 for(int y=0;y<h;y++){
 Independent<float>local=in.clone(y);
@@ -165,7 +146,7 @@ auto tile=film.getTile(bd);
         ray<float>r;
         cam.generateRay(&r,cs);
         //printf("%d\n",mq);
-        sum=sum+render(&r,0,mesh,local,kd);
+        sum=sum+render(&r,0,local,kd);
         }
         sum=sum/float(spp);
         tile.addSample(f,vec2<float,P>(x,y),sum,1.0f);

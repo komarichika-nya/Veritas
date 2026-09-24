@@ -23,7 +23,7 @@ namespace veritas{
         PointLight(const Spectrum<T>&I,Transform<T>*trans,T scale):I(I),trans(trans),scale(scale){}
         Spectrum<T>Phi()const{return T(4)*veritas::fsytd::PI<T>*I;}
         fsytd::optional<liSample<T>>LiSample(const surface<T>&sur,const vec2<T,P>&u)const{
-            vec3<T,P>p=(*trans)(vec3<T,P>(0,8,0));
+            vec3<T,P>p=(*trans)(vec3<T,P>(0,5,0));
             vec3<T,V>wi=nor(p-sur.pos);
             //printf("sur.pos:%f %f %f p:%f %f %f dist:%f\n",sur.pos.x,sur.pos.y,sur.pos.z,p.x,p.y,p.z,fsytd::dist(p,sur.pos));
             assert(fsytd::dist(p,sur.pos)!=0);
