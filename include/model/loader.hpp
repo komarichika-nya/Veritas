@@ -25,6 +25,12 @@ namespace veritas{
             //int x;for(x=0;x<ps.size();x++)printf("%f %f %f\n",ps[x].x,ps[x].y,ps[x].z);
             //for(x=0;x<idx.size();x++)printf("%d\n",idx[x]);
             //for(x=0;x<normal.size();x++)printf("%f %f %f\n",normal[x].x,normal[x].y,normal[x].z);
+            int32_t caminfo[2];fread(&caminfo,sizeof(int32_t),2,ptr);
+            //printf("%d %d\n",caminfo[0],caminfo[1]);
+            T ca[4];//fread(&ca,sizeof(float),4,ptr);printf("%f %f %f %f\n",ca[0],ca[1],ca[2],ca[3]);
+            //0x43b     0x139
+            //switcher
+            fclose(ptr);
             return Scene<T>(w,h,spp,ps,idx,normal);
         }
     }//namespace fsytd

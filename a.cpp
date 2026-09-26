@@ -108,7 +108,7 @@ int main(){
 Scene<float>scene=fsytd::reader<float>("/home/chika/lcp1/build/conf");
 int spp=scene.spp,w=scene.w,h=scene.h;
 
-printf("%d %d %d\n",spp,w,h);
+//printf("%d %d %d\n",spp,w,h);
 
 veritas::Pose<float>pos=veritas::Pose<float>::init();
 //Lens
