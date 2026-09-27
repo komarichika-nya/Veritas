@@ -1,22 +1,29 @@
 #pragma once
 #include<cstdint>
-#include"conf/conf.hpp"
+#include"fsytd/typelist.hpp"
 namespace veritas{
-    template<typename T>struct sample_traits;
     template<typename T>class Independent;
-    template<typename T>struct sample_traits<Independent<T>>{using value_type=T;};
-    template<typename tp>class Sampler{
+    template<typename T>class Sampler{
     public:
-        using T=typename sample_traits<tp>::value_type;
         Sampler()=default;
-        void init(int px,int py,int idx,int dim){static_cast<tp*>(this)->sp(px,py,idx,dim);}
-        T get1d(){return static_cast<tp*>(this)->get1D();}
-        void get2d(T*u,T*v){static_cast<tp*>(this)->get2D(u,v);}
-        void Dim(int n){static_cast<tp*>(this)->dim(n);}
-        void bounce(int dep){static_cast<tp*>(this)->ref(dep);}
-        tp clone(int idx){return static_cast<tp*>(this)->clone(idx);}
+        template<typename S>Sampler(S*p):tag(fsytd::idx_of<S,Independent<T>>),ptr(p){static_assert(fsytd::idx_of<S,Independent<T>> >=0,"not a Sampler type");}
+        template<typename F>decltype(auto)visit(F&&f){return fsytd::dispatch<0,F,Independent<T>>(tag,ptr,fsytd::forward_<F>(f));}
+        template<typename F>decltype(auto)visit(F&&f)const{return fsytd::dispatch<0,F,Independent<T>>(tag,ptr,fsytd::forward_<F>(f));}
+        void sp(int px,int py,int idx,int dim){return visit([&](auto&s){return s.sp(px,py,idx,dim);});}
+        T get1d(){return visit([&](auto&s){return s.get1d();});}
+        void get2d(T*u,T*v){return visit([&](auto&s){return s.get2d(u,v);});}
+        Sampler<T>clone(int idx){return visit([&](auto&s){return Sampler<T>(new auto(s.clone(idx)));});}
+        ~Sampler(){if(ptr)visit([&](auto&s){delete&s;});ptr=nullptr;}
+        Sampler(const Sampler&)=delete;
+        Sampler&operator=(const Sampler&)=delete;
+        Sampler(Sampler&s)noexcept:ptr(s.ptr),tag(s.tag){s.ptr=nullptr;s.tag=-1;}
+        Sampler&operator=(Sampler&s)noexcept{if(this!=&s){if(ptr)visit([&](auto&sa){delete&sa;});
+        ptr=s.ptr;tag=s.tag;s.ptr=nullptr;s.tag=-1;}return*this;}
+    private:
+        void*ptr=nullptr;
+        int tag=-1;
     };
-    template<typename T>class Independent:public Sampler<Independent<T>>{
+    template<typename T>class Independent{
     public:
         using u32=uint32_t;
         u32 st;
@@ -29,11 +36,10 @@ namespace veritas{
             h=(h^u32(dim))*0x27d4eb2fu;h^=h>>16;
             st=h?h:0x9e3779b9u;
         }
-        T get1D(){return T(pcg())/T(4294967296.0);}
-        void get2D(T*u,T*v){*u=T(pcg())/T(4294967296.0);*v=T(pcg())/T(4294967296.0);}
-        void dim(int){};
-        void ref(int){};
+        T get1d(){return T(pcg())/T(4294967296.0);}
+        void get2d(T*u,T*v){*u=T(pcg())/T(4294967296.0);*v=T(pcg())/T(4294967296.0);}
         u32 pcg(){u32 la=st;st=st*747796405u+2891336453u;u32 u=(la>>((la>>28u)+4u)^la)*277803737u;u=(u>>22u)^u;return u;}
+        u32 xorshift(){u32 x=st;x^=x<<13;x^=x>>17;x^=x<<5;st=x;return x;}
         Independent<T>clone(int idx){
             Independent<T> cpy=*this;u32 mix=u32(idx)*0x9e3779b9u;cpy.st^=mix;
             int x;for(x=1;x<=10;x++)cpy.pcg();return cpy;

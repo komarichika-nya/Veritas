@@ -1,0 +1,4 @@
+Sampler<float>sp(new Independent<float>());
+Projective<float>pro(pos,lens,sh,w,h,45.0f);
+Camera<float>cam(&pro);
+

@@ -28,7 +28,7 @@ Spectrum<float>I(30,30,30);Transform<float>trans;
 PointLight<float>point(I,&trans,1);
 Light<float>light(&point);
 
-vec3<float,V>sp(const vec3<float,V>&n,Independent<float>&s){
+vec3<float,V>sp(const vec3<float,V>&n,Sampler<float>&s){
     float u=s.get1d(),v=s.get1d();float phi=2.0*3.1415926535*u;
     float r=sqrt(v);assert(!isnan(r));float x=cos(phi)*r,z=sin(phi)*r,y=sqrt(std::max(0.0f,1.0f-v));vec3<float,V>u1;
     if(abs(n.y)<float(0.9999))u1=nor(cs(vec3<float,V>(0,1.0,0),n));
@@ -40,7 +40,7 @@ float eps=veritas::fsytd::lim<float>::eps();
 
 float hit2(const ray<float>*r){if(fabs(r->d.y)>eps)return -r->o.y/r->d.y;return -1e8f;}
 
-Spectrum<float>render(ray<float>*r,int dep,Independent<float>&local,Kd_tree<float>&kd){
+Spectrum<float>render(ray<float>*r,int dep,Sampler<float>&local,Kd_tree<float>&kd){
     //if(dep>20)return Spectrum<float>(0,0,0);
     bool hit1=0;float mn=1e30f;float h1=1e30f,t=1e30f,h2=hit2(r);int tp=-1;
     surface<float>sur;//fsytd::optional<surface<float>>sur1;
@@ -119,7 +119,8 @@ Box<float>f(vec2<float,P>(0.5,0.5));
 bound2<int>b(vec2<int,P>(0,0),vec2<int,P>(w-1,h-1));
 Film<Box<float>>film(vec2<int,P>(w,h),b);
 Shut<float>sh(0,0);
-Independent<float>in;
+
+Sampler<float>sp(new Independent<float>());
 Projective<float>pro(pos,lens,sh,w,h,45.0f);
 Camera<float>cam(&pro);
 
@@ -131,7 +132,7 @@ Kd_tree<float>kd(scene.mesh,SplitMode::sah,1.0f,1.0f);
 
 #pragma omp parallel for
 for(int y=0;y<h;y++){
-Independent<float>local=in.clone(y);
+Sampler<float>local=sp.clone(y);
 bound2<int>bd(vec2<int,P>(0,y),vec2<int,P>(w-1,y));
 auto tile=film.getTile(bd);
     for(int x=0;x<w;x++){

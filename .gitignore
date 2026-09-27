@@ -11,7 +11,6 @@ b.cpp
 c.cpp
 d.cpp
 main.cpp
-*.py
 *.sh
 *.obj
 *.mtl

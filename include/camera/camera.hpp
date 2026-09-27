@@ -15,7 +15,7 @@ namespace veritas{
     public:
         Camera()=default;
         template<typename C>Camera(C*p):tag(fsytd::idx_of<C,Projective<T>>),ptr(p){static_assert(fsytd::idx_of<C,Projective<T>> >=0,"not a camera type");}
-        template<typename F>decltype(auto)visit(F&&f){return fsytd::dispatch<0,F,Projective<T>>(tag,ptr,fsytd::forward_<F>(f)); }
+        template<typename F>decltype(auto)visit(F&&f){return fsytd::dispatch<0,F,Projective<T>>(tag,ptr,fsytd::forward_<F>(f));}
         template<typename F>decltype(auto)visit(F&&f)const{return fsytd::dispatch<0,F,Projective<T>>(tag,ptr,fsytd::forward_<F>(f));}
         void generateRay(ray<T>*r,cameraSample<T>&cs)const{return visit([&](const auto&c){return c.generateRay(r,cs);});}
         Pose<T>&getPos(){return visit([&](auto&c)->Pose<T>&{return c.getPos();});}
