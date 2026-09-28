@@ -117,7 +117,7 @@ Film<Box<float>>film(vec2<int,P>(w,h),b);
 Shut<float>sh(0,0);
 
 Sampler<float>sp(new Independent<float>());
-Projective<float>pro(pos,lens,sh,w,h,45.0f);
+Projective<float>pro(pos,lens,sh,w,h,60.0f);
 Camera<float>cam(&pro);
 
 Spectrum<float>I(30,30,30);
@@ -131,9 +131,10 @@ cam.getPos()=cam.getPos().look(cam.getPos().p,vec3<float,P>(0,6,0),vec3<float,V>
 
 Kd_tree<float>kd(scene.mesh,SplitMode::sah,1.0f,1.0f);
 
-#pragma omp parallel for
+#pragma omp parallel for schedule(dynamic,1)
 for(int y=0;y<h;y++){
-Sampler<float>local=sp.clone(y);
+int id=omp_get_thread_num();
+Sampler<float>local=sp.clone(id);
 bound2<int>bd(vec2<int,P>(0,y),vec2<int,P>(w-1,y));
 auto tile=film.getTile(bd);
     for(int x=0;x<w;x++){

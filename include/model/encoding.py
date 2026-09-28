@@ -1,4 +1,6 @@
+import configparser
 import trimesh,struct,numpy as np
+from dataclasses import dataclass,field,fields
 import os
 
 # header 4 byte     string
@@ -23,96 +25,91 @@ import os
 # camera fov       4 byte   float
 # camera position  4 byte   float*3
 
-input_path,output_path,mode="","","cpu"
-def rd(path):
-    general=False
-    spp,w,h=None,None,None
-    scale=()
-    input_path,output_path,mode="","","cpu"
-    camera=False
-    pos=()
-    cam,fov,lens=None,float(45),0x139
-    with open(path,encoding='utf-8')as f:
-        for l in f:
-            l=l.strip()
-            if not l:continue
-            if l.startswith('#'):continue
-            if l.startswith('[') and l.endswith(']'):
-                general=(l=='[General]')
-                camera=(l=='[Camera]')
-                continue
-            if general:
-                tok=l.split('=')
-                #print(f'{tok[0]} {tok[1]}')
-                try:
-                    if tok[0]=='spp':spp=int(tok[1])
-                    elif tok[0]=='scale':
-                        val=str(tok[1].strip('()'))
-                        scale=tuple(float(v.strip())for v in val.split(','))
-                    elif tok[0]=='width':w=int(tok[1])
-                    elif tok[0]=='height':h=int(tok[1])
-                    elif tok[0]=='input_path':input_path=str(tok[1])
-                    elif tok[0]=='output_path':output_path=str(tok[1])
-                    elif tok[0]=='mode':mode=str(tok[1])
-                    else:raise ValueError(f'unknown parameter {tok[0]}')
-                except(IndexError,ValueError)as e:
-                    raise ValueError(f'{e}')from None
-            if camera:
-                tok=l.split('=')
-                try:
-                    if tok[0]=='type':
-                        if str(tok[1])=='projective':cam=0x43b
-                    elif tok[0]=='pos':
-                        val=str(tok[1].strip('()'))
-                        pos=tuple(float(v.strip())for v in val.split(','))
-                        #print(f'pos:{pos} len:{len(pos)} type:{type(pos)}')
-                    elif tok[0]=='lens':
-                        if str(tok[1])=='dof':lens=0x139
-                    elif tok[0]=='fov':fov=float(tok[1])
-                    else:raise ValueError(f'unknown parameter {tok[0]}')
-                except(IndexError,ValueError)as e:
-                    raise ValueError(f'{e}')from None
-    if spp is None or w is None or h is None:
-        raise ValueError(f'missing required header field (spp/width/height)')
-    if input_path=="" or output_path=="":raise FileNotFoundError(f'no such file or directory ')
-    if cam is None:raise ValueError(f'missing required camera type')
-    return scale,spp,w,h,input_path,output_path,mode,cam,fov,lens,pos
+magic=b'\nVES'
+def vec3(s):
+    v=tuple(float(x)for x in s.strip().strip('()').split(','))
+    if len(v)!=3:raise ValueError(f'the format must be (x,y,z), found {s!r}')
+    return v
+def enum(**table):
+    def parse(s):
+        s=s.strip()
+        if s not in table:
+            raise ValueError(f'value error {s!r}, supported {list(table)}')
+        return table[s]
+    return parse
 
-#header and base message test.
+CAMERAS=enum(projective=0x43b)
+LENS=enum(dof=0x139)
+
+req=object()
+def F(sec,parse,fmt=None,dft=req,key=None):
+    return field(default=None if dft is req else dft,
+                 metadata=dict(sec=sec,parse=parse,fmt=fmt,key=key,req=dft is req))
+@dataclass
+class config:
+    #[General]
+    scale:tuple=F('General',vec3,'<3f',dft=(1.0,1.0,1.0))
+    spp:int=F('General',int,'<i')
+    width:int=F('General',int,'<i')
+    height:int=F('General',int,'<i')
+    input_path:str=F('General',str)
+    output_path:str=F('General',str)
+    mode:str=F('General',str,dft='cpu')
+    #[Camera]
+    camera:int=F('Camera',CAMERAS,'<i',key='type')
+    lens:int=F('Camera',LENS,'<i',dft=0x139)
+    fov:float=F('Camera',float,'<f',dft=45.0)
+    pos:tuple=F('Camera',vec3,'<3f',dft=(0,0,0))
+
+def rd(path):
+    cp=configparser.ConfigParser(comment_prefixes=('#',),inline_comment_prefixes=('#',),interpolation=None)
+    cp.optionxform=str
+    with open(path,encoding='utf-8')as f:
+        cp.read_file(f)
+    known,kwargs={},{}
+    for fd in fields(config):
+        m=fd.metadata
+        #print(m)
+        sec,key=m['sec'],m['key'] or fd.name
+        #print(sec,key)
+        known.setdefault(sec,set()).add(key)
+        #print(known)
+        raw=cp.get(sec,key,fallback=None)
+        if raw is None:
+            if m['req']:raise ValueError(f'[{sec}] missing required {key}')
+            continue
+        try:
+            kwargs[fd.name]=m['parse'](raw)
+        except ValueError as e:
+            raise ValueError(f'[{sec}] {key}: {e}')from None
+    #print(known)
+    for sec in cp.sections():
+        extra=set(cp[sec])-known.get(sec,set())
+        #print(extra)
+        if extra:raise ValueError(f'[{sec}] unknown {sorted(extra)}')
+    return config(**kwargs)
 
 def load(path):
-    real=os.path.expanduser(path)
-    mesh=trimesh.load(real)
+    mesh=trimesh.load(os.path.expanduser(path))
     if isinstance(mesh,trimesh.Scene):
-        mesh=trimesh.util.concatenate(tuple(g for g in mesh.geometry.values()))
+        mesh=trimesh.util.concatenate(mesh.geometry.values())
     return mesh.vertices,mesh.faces,mesh.vertex_normals
-
-def pack(scale,spp,w,h,input_path,cam,fov,lens,campos):
-    buf=bytearray()
-    buf+=b'\nVES'
-    buf+=struct.pack("<3f",*scale)
-    buf+=struct.pack("<i",spp)
-    buf+=struct.pack("<i",w)
-    buf+=struct.pack("<i",h)
-    pos,face,normal=load(input_path)
-    buf+=struct.pack("<i",len(pos))
-    buf+=struct.pack("<i",len(face)*3)
-    buf+=struct.pack("<i",len(normal))
-    for x,y,z in pos:buf+=struct.pack("<3f",x,y,z)
-    for f in face:buf+=struct.pack("<3i",*f)
-    for n in normal:buf+=struct.pack("<3f",*n)
-    buf+=struct.pack("<i",cam)
-    #print(f'pos:{campos} len:{len(campos)} type:{type(campos)}')
-    buf+=struct.pack("<i",lens)
-    buf+=struct.pack("<f",fov)
-    buf+=struct.pack("<3f",*campos)
-    return bytes(buf)
-
-if __name__=="__main__":
-    scale,spp,w,h,input_path,output_path,mode,cam,fov,lens,pos=rd('a.v')
-    print(rd('a.v'))
-
+def pack_sec(cfg,sec):
+    out=bytearray()
+    for fd in fields(cfg):
+        m=fd.metadata
+        if m['sec']!=sec or m['fmt']is None:continue
+        v=getattr(cfg,fd.name)
+        print(v)
+        out+=struct.pack(m['fmt'],*(v if isinstance(v,tuple)else(v,)))
+    return bytes(out)
+def pack(cfg):
+    pos,face,normal=load(cfg.input_path)
+    return b''.join([magic,pack_sec(cfg,'General'),struct.pack('<3i',len(pos),face.size,len(normal)),
+                     pos.astype('<f4').tobytes(),face.astype('<i4').tobytes(),normal.astype('<f4').tobytes(),
+                     pack_sec(cfg,'Camera')])
+if __name__=='__main__':
+    cfg=rd('a.v')
     with open('/home/chika/lcp1/build/conf','wb')as f:
-        f.write(pack(scale,spp,w,h,input_path,cam,fov,lens,pos))
-    print('ok ^_^')
-
+        f.write(pack(cfg))
+    print(f'\033[1;35mok ^_^\033[0m')
