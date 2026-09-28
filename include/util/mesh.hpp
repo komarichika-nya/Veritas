@@ -13,11 +13,11 @@
 #include"fsytd/span.hpp"
 namespace veritas{
     template<typename T>class Mesh{
-        const Shape<Triangle,T>*mesh=nullptr;
+        const Triangle<T>*mesh=nullptr;
         //const Shape<Triangle,T>*getMesh()const{assert(mesh_idx>=0&&static_cast<size_t>(mesh_idx)<v->size());return (*v)[mesh_idx];}
     public:
         constexpr Mesh()=default;
-        constexpr Mesh(const Shape<Triangle,T>*mesh):mesh(mesh){}
+        constexpr Mesh(Triangle<T>*mesh):mesh(mesh){}
         const T area(int tri_idx)const{
             const int*id=&mesh->idx_vec[tri_idx*3];
             vec3<T,P>p0=mesh->pos[id[0]],p1=mesh->pos[id[1]],p2=mesh->pos[id[2]];
@@ -53,7 +53,7 @@ namespace veritas{
             //dpu,dpv,dnu,dnv
             return s;
         }
-        const Shape<Triangle,T>*getMesh()const{return mesh;}
+        const Triangle<T>*getMesh()const{return mesh;}
     };
     //Sence::std::vector<Mesh<T>*>*sence;
     //for x in h:

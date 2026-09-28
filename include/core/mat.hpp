@@ -6,8 +6,8 @@
 namespace veritas{
     template<typename T>struct quat;
     template<typename T>struct mat34{
-        T mat[3][4];
-        mat34<T>unit(){mat34<T>v;v.mat[0][0]=v.mat[1][1]=v.mat[2][2]=1;return v;}
+        T mat[3][4]{};
+        mat34<T>unit()const{mat34<T>v;v.mat[0][0]=v.mat[1][1]=v.mat[2][2]=1;return v;}
         mat34<T>mv(const vec3<T,V>&v){mat34<T>m;m.mat[0][3]=v.x;m.mat[1][3]=v.y;m.mat[2][3]=v.z;return m;}
         mat34<T>scale(const vec3<T,V>&v){mat34<T>m;m.mat[0][0]=v.x;m.mat[1][1]=v.y;m.mat[2][2]=v.z;return m;}
         mat34<T>rot(const quat<T>&b){mat34<T>v;quat a=quat<T>::norm(b);
@@ -33,7 +33,7 @@ namespace veritas{
         vec3<T,V>operator*(const vec3<T,V>&v)const{
             return vec3<T,V>(mat[0][0]*v.x+mat[0][1]*v.y+mat[0][2]*v.z,
             mat[1][0]*v.x+mat[1][1]*v.y+mat[1][2]*v.z,mat[2][0]*v.x+mat[2][1]*v.y+mat[2][2]*v.z);}
-        mat34<T>inv(const mat34<T>&out){T a00=out.mat[0][0],a01=out.mat[0][1],a02=out.mat[0][2],a03=out.mat[0][3];
+        mat34<T>inv(const mat34<T>&out)const{T a00=out.mat[0][0],a01=out.mat[0][1],a02=out.mat[0][2],a03=out.mat[0][3];
             T a10=out.mat[1][0],a11=out.mat[1][1],a12=out.mat[1][2],a13=out.mat[1][3];
             T a20=out.mat[2][0],a21=out.mat[2][1],a22=out.mat[2][2],a23=out.mat[2][3];mat34<T>r;
             T c0=a11*a22-a12*a21,c1=a10*a22-a12*a20,c2=a10*a21-a11*a20,det=a00*c0-a01*c1+a02*c2;if(!det)return unit();T d=T(1)/det;

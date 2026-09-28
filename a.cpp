@@ -24,10 +24,6 @@
 using namespace veritas;
 using std::isnan;
 
-Spectrum<float>I(30,30,30);Transform<float>trans;
-PointLight<float>point(I,&trans,1);
-Light<float>light(&point);
-
 vec3<float,V>sp(const vec3<float,V>&n,Sampler<float>&s){
     float u=s.get1d(),v=s.get1d();float phi=2.0*3.1415926535*u;
     float r=sqrt(v);assert(!isnan(r));float x=cos(phi)*r,z=sin(phi)*r,y=sqrt(std::max(0.0f,1.0f-v));vec3<float,V>u1;
@@ -40,7 +36,7 @@ float eps=veritas::fsytd::lim<float>::eps();
 
 float hit2(const ray<float>*r){if(fabs(r->d.y)>eps)return -r->o.y/r->d.y;return -1e8f;}
 
-Spectrum<float>render(ray<float>*r,int dep,Sampler<float>&local,Kd_tree<float>&kd){
+Spectrum<float>render(ray<float>*r,int dep,Sampler<float>&local,Kd_tree<float>&kd,Light<float>&light){
     //if(dep>20)return Spectrum<float>(0,0,0);
     bool hit1=0;float mn=1e30f;float h1=1e30f,t=1e30f,h2=hit2(r);int tp=-1;
     surface<float>sur;//fsytd::optional<surface<float>>sur1;
@@ -98,7 +94,7 @@ Spectrum<float>render(ray<float>*r,int dep,Sampler<float>&local,Kd_tree<float>&k
         put=put/q;
     }
     vec3<float,V>dir=nor(sp(n,local));ray<float>nxt;nxt.o=sur.pos+vec3<float,P>(n.x,n.y,n.z)*nxt.tmn,nxt.d=dir;
-    d2=render(&nxt,dep+1,local,kd)*put;
+    d2=render(&nxt,dep+1,local,kd,light)*put;
     return le+d1+d2;//pointlight pdf=1;
 }
 
@@ -124,6 +120,11 @@ Sampler<float>sp(new Independent<float>());
 Projective<float>pro(pos,lens,sh,w,h,45.0f);
 Camera<float>cam(&pro);
 
+Spectrum<float>I(30,30,30);
+Transform<float>trans(mat34<float>().mv(vec3<float,V>(0,20,0)));
+PointLight<float>point(I,&trans,1);
+Light<float>light(&point);
+
 
 cam.getPos().mv(vec3<float,P>(0,5,20));
 cam.getPos()=cam.getPos().look(cam.getPos().p,vec3<float,P>(0,6,0),vec3<float,V>(0,1,0));
@@ -147,7 +148,7 @@ auto tile=film.getTile(bd);
         ray<float>r;
         cam.generateRay(&r,cs);
         //printf("%d\n",mq);
-        sum=sum+render(&r,0,local,kd);
+        sum=sum+render(&r,0,local,kd,light);
         }
         sum=sum/float(spp);
         tile.addSample(f,vec2<float,P>(x,y),sum,1.0f);
@@ -157,7 +158,7 @@ auto tile=film.getTile(bd);
 }
 //double acc=albedo(vec3<float,V>(0,3,0),0.0238f,1000);
 //printf("%f\n",acc);
-film.writeImage("a.ppm");
+film.writeImage("b.ppm");
 
 //printf("%f\n",(float)cnt/to);
 return 0;

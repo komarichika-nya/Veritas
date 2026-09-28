@@ -12,8 +12,8 @@
 #include"fsytd/ptr.hpp"
 #include"fsytd/allocator.hpp"
 #include"util/transform.hpp"
+#include"fsytd/typelist.hpp"
 namespace veritas{
-    using std::vector;
     template<typename T>struct Deleter{size_t n=0;void operator()(T*p)const noexcept{fsytd::allocator<T>{}.deallocate(p,n);}};
     template<typename T>struct Buffer{
         const T*ptr=nullptr;
@@ -84,9 +84,21 @@ namespace veritas{
     //template<typename T>std::unordered_map<Buffer<T>,std::weak_ptr<alloc<T>>,BufferHash<T>>DeviceBuffer<T>::mp;
     //template<typename T>std::mutex DeviceBuffer<T>::m;
 //#endif
-    struct Triangle{};
-    template<typename tp,typename T>class Shape;
-    template<typename T>class Shape<Triangle,T>{
+    template<typename T>class Triangle;
+    template<typename T>class Shape{
+    public:
+        Shape()=default;
+        template<typename S>Shape(S*p):tag(fsytd::idx_of<S,Triangle<T>>),ptr(p){static_assert(fsytd::idx_of<S,Triangle<T>> >=0,"not a Shape type");}
+        template<typename F>decltype(auto)visit(F&&f){return fsytd::dispatch<0,F,Triangle<T>>(tag,ptr,fsytd::forward_<F>(f));}
+        template<typename F>decltype(auto)visit(F&&f)const{return fsytd::dispatch<0,F,Triangle<T>>(tag,ptr,fsytd::forward_<F>(f));}
+        void create(bool is_reverse,const std::vector<int>&idx_vec,const std::vector<vec3<T,P>>&pos,
+                const std::vector<vec3<T,V>>&normal,const std::vector<vec3<T,V>>&tangent,
+                const std::vector<vec2<T,P>>&uv){return visit([&](auto&s){return s.create(is_reverse,idx_vec,pos,normal,tangent,uv);});}
+    private:
+        void*ptr=nullptr;
+        int tag=-1;
+    };
+    template<typename T>class Triangle{
     public:
         int num_vec=-1,num_idx=-1;
         const int*idx_vec=nullptr;
@@ -95,9 +107,10 @@ namespace veritas{
         const vec3<T,V>*tangent=nullptr;
         const vec2<T,P>*uv=nullptr;
         bool is_reverse;
-        constexpr Shape()=default;
-        constexpr Shape(bool is_reverse,const vector<int>&idx_vec,const vector<vec3<T,P>>&pos,
-            const vector<vec3<T,V>>&normal,const vector<vec3<T,V>>&tangent,const vector<vec2<T,P>>&uv):is_reverse(is_reverse),num_vec(pos.size()),num_idx(idx_vec.size()/3){
+        Triangle()=default;
+        Triangle(bool is_reverse,const std::vector<int>&idx_vec,const std::vector<vec3<T,P>>&pos,
+            const std::vector<vec3<T,V>>&normal,const std::vector<vec3<T,V>>&tangent,const std::vector<vec2<T,P>>&uv){
+            this->is_reverse=is_reverse;this->num_vec=pos.size();this->num_idx=idx_vec.size()/3;
             if(!idx_vec.empty())this->idx_vec=BufferCache<int>::look_or_add(idx_vec.data(),idx_vec.size());
             //for(int x=0;x<idx_vec.size();x++)printf("%d\n",this->idx_vec[x]);
             if(!pos.empty())this->pos=BufferCache<vec3<T,P>>::look_or_add(pos.data(),pos.size()); 

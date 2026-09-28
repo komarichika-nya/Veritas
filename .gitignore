@@ -20,3 +20,5 @@ doc/
 test/
 *.ppm
 a.in
+*.txt
+*.glb

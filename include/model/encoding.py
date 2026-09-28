@@ -2,6 +2,7 @@ import trimesh,struct,numpy as np
 import os
 
 # header 4 byte     string
+#scale  4 byte      float*3
 # spp   4 byte      int
 # w     4 byte      int
 # h     4 byte      int
@@ -26,6 +27,7 @@ input_path,output_path,mode="","","cpu"
 def rd(path):
     general=False
     spp,w,h=None,None,None
+    scale=()
     input_path,output_path,mode="","","cpu"
     camera=False
     pos=()
@@ -44,6 +46,9 @@ def rd(path):
                 #print(f'{tok[0]} {tok[1]}')
                 try:
                     if tok[0]=='spp':spp=int(tok[1])
+                    elif tok[0]=='scale':
+                        val=str(tok[1].strip('()'))
+                        scale=tuple(float(v.strip())for v in val.split(','))
                     elif tok[0]=='width':w=int(tok[1])
                     elif tok[0]=='height':h=int(tok[1])
                     elif tok[0]=='input_path':input_path=str(tok[1])
@@ -71,7 +76,7 @@ def rd(path):
         raise ValueError(f'missing required header field (spp/width/height)')
     if input_path=="" or output_path=="":raise FileNotFoundError(f'no such file or directory ')
     if cam is None:raise ValueError(f'missing required camera type')
-    return spp,w,h,input_path,output_path,mode,cam,fov,lens,pos
+    return scale,spp,w,h,input_path,output_path,mode,cam,fov,lens,pos
 
 #header and base message test.
 
@@ -82,9 +87,10 @@ def load(path):
         mesh=trimesh.util.concatenate(tuple(g for g in mesh.geometry.values()))
     return mesh.vertices,mesh.faces,mesh.vertex_normals
 
-def pack(spp,w,h,input_path,cam,fov,lens,campos):
+def pack(scale,spp,w,h,input_path,cam,fov,lens,campos):
     buf=bytearray()
     buf+=b'\nVES'
+    buf+=struct.pack("<3f",*scale)
     buf+=struct.pack("<i",spp)
     buf+=struct.pack("<i",w)
     buf+=struct.pack("<i",h)
@@ -103,10 +109,10 @@ def pack(spp,w,h,input_path,cam,fov,lens,campos):
     return bytes(buf)
 
 if __name__=="__main__":
-    spp,w,h,input_path,output_path,mode,cam,fov,lens,pos=rd('a.v')
+    scale,spp,w,h,input_path,output_path,mode,cam,fov,lens,pos=rd('a.v')
     print(rd('a.v'))
 
     with open('/home/chika/lcp1/build/conf','wb')as f:
-        f.write(pack(spp,w,h,input_path,cam,fov,lens,pos))
+        f.write(pack(scale,spp,w,h,input_path,cam,fov,lens,pos))
     print('ok ^_^')
 

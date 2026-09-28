@@ -10,10 +10,6 @@
 #include"film/filter.hpp"
 #include"color/rgb.hpp"
 namespace veritas{
-    using std::pow;
-    using std::clamp;
-    using std::ceil;
-    using std::floor;
     template<typename T>struct Tile{
         std::unique_ptr<Pixel<T>[]>pixel;
         bound2<int>pixelBound;bound2<int>sampleBound;
@@ -26,10 +22,10 @@ namespace veritas{
         template<typename F>
         void addSample(const F&f,const vec2<T,P>&p,const Spectrum<T>&L,T w)const{
             vec2<T,P>r=f.radius();
-            int x0=fsytd::max((int)ceil(p.x-r.x+T(0.5)),sampleBound.mn.x);
-            int x1=fsytd::min((int)floor(p.x+r.x+T(0.5)),sampleBound.mx.x);
-            int y0=fsytd::max((int)ceil(p.y-r.y+T(0.5)),sampleBound.mn.y);
-            int y1=fsytd::min((int)floor(p.y+r.y+T(0.5)),sampleBound.mx.y);
+            int x0=fsytd::max((int)std::ceil(p.x-r.x+T(0.5)),sampleBound.mn.x);
+            int x1=fsytd::min((int)std::floor(p.x+r.x+T(0.5)),sampleBound.mx.x);
+            int y0=fsytd::max((int)std::ceil(p.y-r.y+T(0.5)),sampleBound.mn.y);
+            int y1=fsytd::min((int)std::floor(p.y+r.y+T(0.5)),sampleBound.mx.y);
             int x,y;int rw=sampleBound.mx.x-sampleBound.mn.x+1;
             for(y=y0;y<=y1;y++){
                 for(x=x0;x<=x1;x++){
@@ -106,8 +102,16 @@ namespace veritas{
                     col.c[0]=pixel[idx].rgb[0]/pixel[idx].sum;//+pixel[idx].splatXYZ[0]/pixel[idx].splatSum;
                     col.c[1]=pixel[idx].rgb[1]/pixel[idx].sum;//+pixel[idx].splatXYZ[1]/pixel[idx].splatSum;
                     col.c[2]=pixel[idx].rgb[2]/pixel[idx].sum;//+pixel[idx].splatXYZ[2]/pixel[idx].splatSum;
-                    auto gamma=[](Type v){return pow(clamp(v,Type(0),Type(1)),Type(1)/Type(2));};
-                    int r=int(gamma(col.c[0])*Type(255.99)),g=int(gamma(col.c[1])*Type(255.99)),b=int(gamma(col.c[2])*Type(255.99));
+                    Type expos=Type(1);col.c[0]*=expos;col.c[1]*=expos;col.c[2]*=expos;
+                    for(int i=0;i<3;i++)col.c[i]=col.c[i]/(Type(1)+col.c[i]);
+                    Type mnc=std::min({col.c[0],col.c[1],col.c[2]});
+                    if(mnc<Type(0))col.c[0]-=mnc,col.c[1]-=mnc,col.c[2]-=mnc;
+                    Type mxc=std::max({col.c[0],col.c[1],col.c[2]});
+                    if(mxc>Type(1))col.c[0]/=mxc,col.c[1]/=mxc,col.c[2]/=mxc;
+                    for(int i=0;i<3;i++)col.c[i]=std::clamp(col.c[i],Type(0),Type(1));
+                    auto linear_rgb=[](Type v){v=std::clamp(v,Type(0),Type(1));
+                    return v<=Type(0.0031308)?Type(12.92)*v:Type(1.055)*std::pow(v,Type(1)/Type(2.4))-Type(0.005);};
+                    int r=int(linear_rgb(col.c[0])*Type(255.99)),g=int(linear_rgb(col.c[1])*Type(255.99)),b=int(linear_rgb(col.c[2])*Type(255.99));
                     fprintf(f,"%d %d %d\n",int(r),int(g),int(b));
                 }
         }
